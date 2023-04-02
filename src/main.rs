@@ -7,6 +7,7 @@ use bevy::{
   mod game; 
   mod tower; 
   mod enemy;
+  mod bullet;
   
   #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
   enum GameState {

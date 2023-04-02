@@ -7,7 +7,8 @@ use bevy::{
 use super::GameState;
 
 use crate::tower::{TowerBundle, TowerStats, TOWER_RADIUS, TOWER_COLOR, TowerPlugin};
-use crate::enemy::{EnemyPlugin};
+use crate::enemy::EnemyPlugin;
+use crate::bullet::BulletPlugin;
 
 pub struct GamePlugin;
 
@@ -15,7 +16,8 @@ impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_system(startup.in_schedule(OnEnter(GameState::Game)))
         .add_plugin(TowerPlugin)
-        .add_plugin(EnemyPlugin);
+        .add_plugin(EnemyPlugin)
+        .add_plugin(BulletPlugin);
         //.add_system(show_towers)
     }
 }

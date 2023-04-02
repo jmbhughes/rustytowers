@@ -4,6 +4,8 @@ use bevy::{
     input::mouse::{MouseButtonInput, MouseMotion, MouseWheel}, window::PrimaryWindow
 };
 
+use crate::enemy::EnemyStats;
+use crate::bullet::{spawn_bullet, BULLET_COLOR, BULLET_RADIUS, Bullet};
 use super::GameState;
 
 pub struct TowerPlugin;
@@ -14,7 +16,8 @@ pub const TOWER_COLOR: Color = Color::PURPLE;
 
 impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(place_tower);
+        app.add_system(place_tower)
+        .add_system(shoot_enemies);
     }
 }
 
@@ -63,8 +66,28 @@ impl TowerBundle {
     }
 }
 
-fn shoot_enemies() {
-
+fn shoot_enemies(mut commands: Commands, tower_query: Query<&TowerStats>, 
+    enemy_query: Query<(Entity, &EnemyStats), With<EnemyStats>>, mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>> ) {
+    for tower_stat in tower_query.iter() {
+        for (enemy, enemy_stat) in enemy_query.iter() {
+            if ((enemy_stat.x - tower_stat.x).powi(2) + (enemy_stat.y - tower_stat.y).powi(2)).sqrt() < tower_stat.range {
+                commands.spawn((
+                    MaterialMesh2dBundle {
+                        mesh: meshes.add(shape::Circle::new(BULLET_RADIUS).into()).into(),
+                        material: materials.add(ColorMaterial::from(BULLET_COLOR)),
+                        transform: Transform::from_xyz(tower_stat.x, tower_stat.y, 0.),
+                        ..default()
+                    },
+                    Bullet {
+                        target: enemy,
+                        damage: 100,
+                        speed: 10.
+                    },
+                ));
+            }
+        }
+    }
 }
 
 fn place_tower(mut commands: Commands, 

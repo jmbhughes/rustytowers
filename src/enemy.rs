@@ -24,9 +24,9 @@ pub struct EnemyState {
 
 #[derive(Component, Default)]
 pub struct EnemyStats {
-    health: u8,
-    x: f32, 
-    y: f32
+    pub health: u8,
+    pub x: f32, 
+    pub y: f32
 }
 
 #[derive(Bundle, Default)]
