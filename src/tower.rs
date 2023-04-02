@@ -1,9 +1,20 @@
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    sprite::MaterialMesh2dBundle,
+    input::mouse::{MouseButtonInput, MouseMotion, MouseWheel}, window::PrimaryWindow
+};
+
+use super::GameState;
+
 pub struct TowerPlugin;
+
+pub const TOWER_RADIUS: f32 = 25.;
+pub const TOWER_COLOR: Color = Color::PURPLE;
+
 
 impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
-        
+        app.add_system(place_tower);
     }
 }
 
@@ -56,3 +67,34 @@ fn shoot_enemies() {
 
 }
 
+fn place_tower(mut commands: Commands, 
+    mouse_button_input: Res<Input<MouseButton>>, 
+    primary_window_query: Query<&Window, With<PrimaryWindow>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    game_state: Res<State<GameState>>) {
+
+    if game_state.0 == GameState::Game {
+
+        let Ok(window) = primary_window_query.get_single() else {
+                return;
+        };
+
+        if let Some(_position) = window.cursor_position() {
+            if mouse_button_input.just_released(MouseButton::Left) {
+                info!("left mouse just released");
+                info!("{} {}", _position.x, _position.y);
+                let x = _position.x - window.width() / 2.0;
+                let y = _position.y - window.height() / 2.0;
+                commands.spawn((
+                    TowerBundle::new(x, y),
+                    MaterialMesh2dBundle {
+                        mesh: meshes.add(shape::Circle::new(TOWER_RADIUS).into()).into(),
+                        material: materials.add(ColorMaterial::from(TOWER_COLOR)),
+                        transform: Transform::from_xyz(x, y, 0.),
+                        ..default()
+                }));
+            }   
+    }
+    }
+}
