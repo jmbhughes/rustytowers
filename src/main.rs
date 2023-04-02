@@ -4,7 +4,8 @@ use bevy::{
   
   mod splash;
   mod menu;
-  mod game;  
+  mod game; 
+  mod tower; 
   
   #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
   enum GameState {
@@ -33,7 +34,13 @@ use bevy::{
   
   fn main() {
     App::new()
-      .add_plugins(DefaultPlugins)
+      .add_plugins(DefaultPlugins
+        .set(WindowPlugin {primary_window: Some(Window {
+            title: String::from("Rusty Towers"),
+            ..Default::default()
+        }),
+        ..default()
+        }).set(ImagePlugin::default_nearest()))
       .insert_resource(DisplayQuality::Medium)
       .insert_resource(Volume(7))
       .add_startup_system(setup)
