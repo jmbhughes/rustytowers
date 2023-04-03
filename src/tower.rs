@@ -7,6 +7,8 @@ use bevy::{
 use crate::enemy::EnemyStats;
 use crate::bullet::{BULLET_COLOR, BULLET_RADIUS, Bullet};
 use super::GameState;
+use crate::game::{fall_off_damage_curve, euclidean_distance};
+use crate::base::Base;
 
 pub struct TowerPlugin;
 
@@ -27,10 +29,10 @@ pub struct TowerStats {
     pub y: f32,
     pub level: u32,
     pub range: f32,
-    pub damage: u32,
+    pub damage: f32,
     pub upgrade_price: u32,
     pub speed: f32,
-    pub health_percent: u32
+    pub health: f32
 }
 
 #[derive(Component, Default)]
@@ -53,10 +55,10 @@ impl TowerBundle {
                 y: y,
                 level: 1,
                 range: 128.0,
-                damage: 1,
+                damage: 1.,
                 upgrade_price: 10,
                 speed: 1.0,
-                health_percent: 100
+                health: 100.
             },
             state: TowerState {
                 timer: Timer::from_seconds(1.0, TimerMode::Repeating),
@@ -91,7 +93,7 @@ fn shoot_enemies(
                     },
                     Bullet {
                         target: enemy,
-                        damage: 50,
+                        damage: 50.,
                         speed: 200.
                     },
                 ));
@@ -107,7 +109,11 @@ fn place_tower(
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    game_state: Res<State<GameState>>
+    game_state: Res<State<GameState>>,
+    mut update_game_state: ResMut<NextState<GameState>>,
+    mut other_towers_query: Query<(Entity, &mut TowerStats, &Transform)>,
+    mut enemies_query: Query<(Entity, &mut EnemyStats, &Transform)>,
+    mut base_query: Query<(&mut Base, &Transform)>,
 ) {
 
     if game_state.0 == GameState::Game {
@@ -118,10 +124,46 @@ fn place_tower(
 
         if let Some(_position) = window.cursor_position() {
             if mouse_button_input.just_pressed(MouseButton::Left) {
-                info!("left mouse just released");
-                info!("{} {}", _position.x, _position.y);
                 let x = _position.x - window.width() / 2.0;
                 let y = _position.y - window.height() / 2.0;
+
+                                
+                for (tower_entity, mut tower_stat, tower_transform) in other_towers_query.iter_mut() {
+                    let distance = euclidean_distance(x, y, tower_transform.translation.x, tower_transform.translation.y);
+                    let damage = fall_off_damage_curve(distance, 100., 10., 4.);
+                    if tower_stat.health >= damage {
+                        info!("{} results in {} to {}", damage, tower_stat.health, tower_stat.health - damage);
+                        tower_stat.health -= damage;
+                    } else {
+                        info!("tower despawned");
+                        commands.entity(tower_entity).despawn();
+                    }
+                }
+
+                for (enemy_entity, mut enemy_stat, enemy_transform) in enemies_query.iter_mut() {
+                    let distance = euclidean_distance(x, y, enemy_transform.translation.x, enemy_transform.translation.y);
+                    let damage = fall_off_damage_curve(distance, 100., 10., 4.);
+                    if enemy_stat.health >= damage {
+                        info!("enemy {} results in {} to {}", damage, enemy_stat.health, enemy_stat.health - damage);
+                        enemy_stat.health -= damage;
+                    } else {
+                        info!("enemy despawned");
+                        commands.entity(enemy_entity).despawn();
+                    }
+                }
+
+                for (mut base, base_transform) in base_query.iter_mut() {
+                    let distance = euclidean_distance(x, y, base_transform.translation.x, base_transform.translation.y);
+                    let damage = fall_off_damage_curve(distance, 100., 10., 4.);
+                    if base.health >= damage {
+                        info!("base {} results in {} to {}", damage, base.health, base.health - damage);
+                        base.health -= damage;
+                    } else {
+                        info!("base destroyed");
+                        update_game_state.set(GameState::GameEnd);
+                    }
+                }
+
                 commands.spawn((
                     TowerBundle::new(x, y),
                     MaterialMesh2dBundle {
@@ -130,6 +172,8 @@ fn place_tower(
                         transform: Transform::from_xyz(x, y, 0.),
                         ..default()
                 }));
+
+                
             }   
     }
     }

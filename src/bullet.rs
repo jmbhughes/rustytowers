@@ -16,7 +16,7 @@ impl Plugin for BulletPlugin {
 #[derive(Component)]
 pub struct Bullet {
     pub target: Entity,
-    pub damage: u8,
+    pub damage: f32,
     pub speed: f32
 }
 
@@ -49,7 +49,7 @@ pub fn move_bullets(
                     target_stats.health -= bullet.damage;
                 }
                 commands.entity(bullet_entity).despawn();
-                if target_stats.health <= 0 {
+                if target_stats.health <= 0. {
                     commands.entity(target_entity).despawn();
                 }
             }

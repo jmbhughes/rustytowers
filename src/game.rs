@@ -1,3 +1,5 @@
+use std::f32::consts::E;
+
 use bevy::{
     prelude::*,
     sprite::MaterialMesh2dBundle,
@@ -34,7 +36,7 @@ fn startup(mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>) {
 
-    commands.spawn((Base {health: 1000}, 
+    commands.spawn((Base {health: 1000.}, 
     MaterialMesh2dBundle {
         mesh: meshes.add(shape::Circle::new(BASE_RADIUS).into()).into(),
         material: materials.add(ColorMaterial::from(BASE_COLOR)),
@@ -60,7 +62,6 @@ fn end_game(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         AnimateTranslation,
     ));
-    info!("GAME ENDED");
 }
 
 fn animate_translation(
@@ -71,4 +72,16 @@ fn animate_translation(
         transform.translation.x = 100.0 * time.elapsed_seconds().sin() - 400.0;
         transform.translation.y = 100.0 * time.elapsed_seconds().cos();
     }
+}
+
+pub fn fall_off_damage_curve(distance: f32, base_damage: f32, min_distance: f32, k: f32) -> f32{
+    if distance < min_distance {
+        base_damage
+    } else {
+        base_damage / (1. + E.powf(-k) * (distance-min_distance))
+    }
+}
+
+pub fn euclidean_distance(x1: f32, y1: f32, x2: f32, y2: f32) -> f32 {
+    ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt()
 }

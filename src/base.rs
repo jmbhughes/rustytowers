@@ -6,5 +6,5 @@ pub const BASE_RADIUS: f32 = 30.;
 
 #[derive(Component)]
 pub struct Base {
-    pub health: u32
+    pub health: f32
 }

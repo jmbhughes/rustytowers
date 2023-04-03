@@ -27,10 +27,10 @@ pub struct EnemyState {
 
 #[derive(Component, Default)]
 pub struct EnemyStats {
-    pub health: u8,
+    pub health: f32,
     pub destination: Vec2,
     pub speed: f32,
-    pub damage: u32
+    pub damage: f32
 }
 
 #[derive(Bundle, Default)]
@@ -43,10 +43,10 @@ impl EnemyBundle {
     pub fn new(x: f32, y: f32, destination: Vec2) -> Self {
         Self {
             stats: EnemyStats {
-                health: 100,
+                health: 100.,
                 destination: destination,
                 speed: 50.,
-                damage: 100
+                damage: 100.
             },
             state: EnemyState {
                 timer: Timer::from_seconds(1.0, TimerMode::Repeating),
@@ -90,8 +90,7 @@ fn enemy_damage_base(
         if ((enemy_transform.translation.x - base_transform.translation.x).powi(2) + (enemy_transform.translation.y - base_transform.translation.y).powi(2)).sqrt() < BASE_RADIUS {
             base.health -= enemy_stat.damage;
             commands.entity(enemy_entity).despawn();
-            if base.health <= 0 {
-                info!("game over!");
+            if base.health <= 0. {
                 game_state.set(GameState::GameEnd);
             }
         }
@@ -121,8 +120,6 @@ fn place_enemy(mut commands: Commands,
 
         if let Some(_position) = window.cursor_position() {
             if mouse_button_input.just_released(MouseButton::Right) {
-                info!("right mouse just released");
-                info!("{} {}", _position.x, _position.y);
                 let x = _position.x - window.width() / 2.0;
                 let y = _position.y - window.height() / 2.0;
                 commands.spawn((
