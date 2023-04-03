@@ -9,7 +9,8 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(place_enemy);
+        app.add_system(place_enemy)
+           .add_system(move_enemy);
     }
 }
 
@@ -26,7 +27,9 @@ pub struct EnemyState {
 pub struct EnemyStats {
     pub health: u8,
     pub x: f32, 
-    pub y: f32
+    pub y: f32,
+    pub destination: Vec2,
+    pub speed: f32
 }
 
 #[derive(Bundle, Default)]
@@ -41,7 +44,9 @@ impl EnemyBundle {
             stats: EnemyStats {
                 health: 100,
                 x: x,
-                y: y
+                y: y,
+                destination: [1000., 1000.].into(),
+                speed: 50.
             },
             state: EnemyState {
                 timer: Timer::from_seconds(1.0, TimerMode::Repeating),
@@ -50,6 +55,24 @@ impl EnemyBundle {
         }
     }
 }
+
+fn move_enemy(
+    time: Res<Time>, 
+    mut enemy_query: Query<(&EnemyStats, &mut Transform)>) {
+        for (enemy_stat, mut transform) in enemy_query.iter_mut() {
+            let dist = transform
+            .translation
+            .truncate()
+            .distance(enemy_stat.destination);
+
+            let delta = time.delta_seconds();
+            let step = enemy_stat.speed * delta;
+            transform.translation.x +=
+                    step / dist * (enemy_stat.destination[0] - transform.translation.x);
+            transform.translation.y +=
+                    step / dist * (enemy_stat.destination[1] - transform.translation.y);
+        }
+    }
 
 fn place_enemy(mut commands: Commands, 
     mouse_button_input: Res<Input<MouseButton>>, 

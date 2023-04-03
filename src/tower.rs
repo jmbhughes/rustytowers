@@ -67,12 +67,13 @@ impl TowerBundle {
 }
 
 fn shoot_enemies(
-    mut commands: Commands, time: Res<Time>, 
+    mut commands: Commands, 
+    time: Res<Time>, 
     mut tower_query: Query<(&TowerStats, &mut TowerState)>, 
     enemy_query: Query<(Entity, &EnemyStats), With<EnemyStats>>, 
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>> ) {
-        
+
     for (tower_stat, mut tower_state) in tower_query.iter_mut() {
         tower_state.timer.tick(time.delta());
         if !tower_state.timer.finished() {
@@ -90,16 +91,18 @@ fn shoot_enemies(
                     },
                     Bullet {
                         target: enemy,
-                        damage: 100,
-                        speed: 100.
+                        damage: 50,
+                        speed: 200.
                     },
                 ));
+                break;
             }
         }
     }
 }
 
-fn place_tower(mut commands: Commands, 
+fn place_tower(
+    mut commands: Commands, 
     mouse_button_input: Res<Input<MouseButton>>, 
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
     mut meshes: ResMut<Assets<Mesh>>,

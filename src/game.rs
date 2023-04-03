@@ -18,7 +18,6 @@ impl Plugin for GamePlugin {
         .add_plugin(TowerPlugin)
         .add_plugin(EnemyPlugin)
         .add_plugin(BulletPlugin);
-        //.add_system(show_towers)
     }
 }
 

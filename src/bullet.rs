@@ -16,7 +16,7 @@ impl Plugin for BulletPlugin {
 #[derive(Component)]
 pub struct Bullet {
     pub target: Entity,
-    pub damage: u32,
+    pub damage: u8,
     pub speed: f32
 }
 
@@ -25,23 +25,32 @@ pub const BULLET_COLOR: Color = Color::RED;
 
 
 pub fn move_bullets(
+    mut commands: Commands,
     time: Res<Time>, 
-    mut bullet_query: Query<(&Bullet, &mut Transform)>, 
-    mut enemy_query: Query<(Entity, &EnemyStats, &Transform), Without<Bullet>>) {
+    mut bullet_query: Query<(Entity, &Bullet, &mut Transform)>, 
+    mut enemy_query: Query<(Entity, &mut EnemyStats, &Transform), Without<Bullet>>) {
 
-    for (bullet, mut transform) in bullet_query.iter_mut() {
-        if let Ok((_, target_stats, target_transform)) = enemy_query.get(bullet.target) {
+    for (bullet_entity, bullet, mut transform) in bullet_query.iter_mut() {
+        if let Ok((target_entity, mut target_stats, target_transform)) = enemy_query.get_mut(bullet.target) {
             let dist = transform
             .translation
             .truncate()
             .distance(target_transform.translation.truncate());
 
-            let delta = time.delta_seconds();
-            let step = bullet.speed * delta;
-            transform.translation.x +=
-                    step / dist * (target_transform.translation.x - transform.translation.x);
-            transform.translation.y +=
-                    step / dist * (target_transform.translation.y - transform.translation.y);
+            if dist > BULLET_RADIUS {
+                let delta = time.delta_seconds();
+                let step = bullet.speed * delta;
+                transform.translation.x +=
+                        step / dist * (target_transform.translation.x - transform.translation.x);
+                transform.translation.y +=
+                        step / dist * (target_transform.translation.y - transform.translation.y);
+            } else {
+                target_stats.health -= bullet.damage;
+                commands.entity(bullet_entity).despawn();
+                if target_stats.health <= 0 {
+                    commands.entity(target_entity).despawn();
+                }
+            }
 
         } else {
 
