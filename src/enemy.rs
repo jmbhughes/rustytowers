@@ -27,8 +27,6 @@ pub struct EnemyState {
 #[derive(Component, Default)]
 pub struct EnemyStats {
     pub health: u8,
-    pub x: f32, 
-    pub y: f32,
     pub destination: Vec2,
     pub speed: f32
 }
@@ -44,8 +42,6 @@ impl EnemyBundle {
         Self {
             stats: EnemyStats {
                 health: 100,
-                x: x,
-                y: y,
                 destination: destination,
                 speed: 50.
             },

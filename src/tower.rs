@@ -70,7 +70,7 @@ fn shoot_enemies(
     mut commands: Commands, 
     time: Res<Time>, 
     mut tower_query: Query<(&TowerStats, &mut TowerState)>, 
-    enemy_query: Query<(Entity, &EnemyStats), With<EnemyStats>>, 
+    enemy_query: Query<(Entity, &Transform), With<EnemyStats>>, 
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>> ) {
 
@@ -80,8 +80,8 @@ fn shoot_enemies(
             continue;
         }
 
-        for (enemy, enemy_stat) in enemy_query.iter() {
-            if ((enemy_stat.x - tower_stat.x).powi(2) + (enemy_stat.y - tower_stat.y).powi(2)).sqrt() < tower_stat.range {
+        for (enemy, enemy_transform) in enemy_query.iter() {
+            if ((enemy_transform.translation.x - tower_stat.x).powi(2) + (enemy_transform.translation.y - tower_stat.y).powi(2)).sqrt() < tower_stat.range {
                 commands.spawn((
                     MaterialMesh2dBundle {
                         mesh: meshes.add(shape::Circle::new(BULLET_RADIUS).into()).into(),
