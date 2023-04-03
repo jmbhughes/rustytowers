@@ -5,6 +5,7 @@ use bevy::{
 };
 use super::GameState;
 use crate::{base::{Base, BASE_RADIUS}, game};
+use rand::Rng;
 
 pub struct EnemyPlugin;
 
@@ -19,6 +20,14 @@ impl Plugin for EnemyPlugin {
 
 pub const ENEMY_RADIUS: f32 = 5.;
 pub const ENEMY_COLOR: Color = Color::BLACK;
+pub const ENEMY_SPAWN_INTERVAL_SECONDS: u32 = 5;
+pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 15;
+
+
+#[derive(Resource)]
+pub struct WaveTimer {
+    pub timer: Timer
+}
 
 #[derive(Component, Default)]
 pub struct EnemyState {
@@ -105,7 +114,10 @@ fn place_enemy(mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     game_state: Res<State<GameState>>,
-    base_query: Query<(&Base, &Transform)>) {
+    base_query: Query<(&Base, &Transform)>,
+    time: Res<Time>,
+    mut wave_timer: ResMut<WaveTimer>
+) {
 
     if game_state.0 == GameState::Game {
 
@@ -118,10 +130,30 @@ fn place_enemy(mut commands: Commands,
             panic!("no base!");
         };
 
-        if let Some(_position) = window.cursor_position() {
-            if mouse_button_input.just_released(MouseButton::Right) {
-                let x = _position.x - window.width() / 2.0;
-                let y = _position.y - window.height() / 2.0;
+        // if let Some(_position) = window.cursor_position() {
+        //     if mouse_button_input.just_released(MouseButton::Right) {
+        //         let x = _position.x - window.width() / 2.0;
+        //         let y = _position.y - window.height() / 2.0;
+        //         commands.spawn((
+        //             EnemyBundle::new(x, y, base_transform.translation.truncate()),
+        //             MaterialMesh2dBundle {
+        //                 mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
+        //                 material: materials.add(ColorMaterial::from(ENEMY_COLOR)),
+        //                 transform: Transform::from_xyz(x, y, 0.),
+        //                 ..default()
+        //         }));
+        //    }   
+        // }
+
+        wave_timer.timer.tick(time.delta());
+
+        if wave_timer.timer.finished() {
+            let mut rng = rand::thread_rng();
+
+            for _ in 0..ENEMY_SPAWN_PER_INTERVAL {
+                let x = rng.gen_range((-window.width() / 2.)..(window.width() / 2.));
+                let y = rng.gen_range((-window.height() / 2.)..(window.height() / 2.));
+
                 commands.spawn((
                     EnemyBundle::new(x, y, base_transform.translation.truncate()),
                     MaterialMesh2dBundle {
@@ -129,8 +161,8 @@ fn place_enemy(mut commands: Commands,
                         material: materials.add(ColorMaterial::from(ENEMY_COLOR)),
                         transform: Transform::from_xyz(x, y, 0.),
                         ..default()
-                }));
-            }   
-    }
+                    }));
+            }
+        }
     }
 }

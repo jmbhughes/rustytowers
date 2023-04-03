@@ -1,4 +1,5 @@
 use std::f32::consts::E;
+use std::time::Duration;
 
 use bevy::{
     prelude::*,
@@ -10,7 +11,7 @@ use bevy::{
 use super::GameState;
 
 use crate::{tower::{TowerBundle, TowerStats, TOWER_RADIUS, TOWER_COLOR, TowerPlugin}, base::BASE_COLOR};
-use crate::enemy::EnemyPlugin;
+use crate::enemy::{EnemyPlugin, WaveTimer, ENEMY_SPAWN_INTERVAL_SECONDS};
 use crate::bullet::BulletPlugin;
 use crate::base::{Base, BASE_RADIUS};
 
@@ -44,6 +45,11 @@ fn startup(mut commands: Commands,
         ..default()
     }
     ));
+
+    commands.insert_resource(WaveTimer {
+        // create the repeating timer
+        timer: Timer::new(Duration::from_secs(ENEMY_SPAWN_INTERVAL_SECONDS as u64), TimerMode::Repeating),
+    });
 }
 
 fn end_game(mut commands: Commands, asset_server: Res<AssetServer>) {

@@ -61,7 +61,7 @@ impl TowerBundle {
                 health: 100.
             },
             state: TowerState {
-                timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                timer: Timer::from_seconds(0.1, TimerMode::Repeating),
             },
             ..Default::default()
         }
@@ -94,7 +94,7 @@ fn shoot_enemies(
                     Bullet {
                         target: enemy,
                         damage: 50.,
-                        speed: 200.
+                        speed: 500.
                     },
                 ));
                 break;
