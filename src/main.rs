@@ -16,7 +16,8 @@ use bevy::{
       Splash,
       Menu,
       Game,
-      Pause
+      Pause,
+      GameEnd
   }
   
   // One of the two settings that can be set through the menu. It will be a resource in the app

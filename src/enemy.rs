@@ -4,14 +4,15 @@ use bevy::{
     input::mouse::{MouseButtonInput, MouseMotion, MouseWheel}, window::PrimaryWindow
 };
 use super::GameState;
-use crate::base::Base;
+use crate::{base::{Base, BASE_RADIUS}, game};
 
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(place_enemy)
-           .add_system(move_enemy);
+        app.add_system(place_enemy.run_if(in_state(GameState::Game)))
+           .add_system(move_enemy.run_if(in_state(GameState::Game)))
+           .add_system(enemy_damage_base.run_if(in_state(GameState::Game)));
     }
 }
 
@@ -28,7 +29,8 @@ pub struct EnemyState {
 pub struct EnemyStats {
     pub health: u8,
     pub destination: Vec2,
-    pub speed: f32
+    pub speed: f32,
+    pub damage: u32
 }
 
 #[derive(Bundle, Default)]
@@ -43,7 +45,8 @@ impl EnemyBundle {
             stats: EnemyStats {
                 health: 100,
                 destination: destination,
-                speed: 50.
+                speed: 50.,
+                damage: 100
             },
             state: EnemyState {
                 timer: Timer::from_seconds(1.0, TimerMode::Repeating),
@@ -56,9 +59,6 @@ impl EnemyBundle {
 fn move_enemy(
     time: Res<Time>, 
     mut enemy_query: Query<(&EnemyStats, &mut Transform)>) {
-
-
-
         for (enemy_stat, mut transform) in enemy_query.iter_mut() {
             let dist = transform
             .translation
@@ -72,7 +72,32 @@ fn move_enemy(
             transform.translation.y +=
                     step / dist * (enemy_stat.destination[1] - transform.translation.y);
         }
+}
+
+fn enemy_damage_base(
+    mut commands: Commands,
+    mut enemy_query: Query<(Entity, &EnemyStats, &Transform)>,
+    mut base_query: Query<(Entity, &mut Base, &Transform)>,
+    mut game_state: ResMut<NextState<GameState>>
+) {
+
+    let Ok((base_entity, mut base, base_transform)) = base_query.get_single_mut() else {
+        info!("no base!");
+        return;
+    };
+
+    for (enemy_entity, enemy_stat, enemy_transform) in enemy_query.iter() {
+        if ((enemy_transform.translation.x - base_transform.translation.x).powi(2) + (enemy_transform.translation.y - base_transform.translation.y).powi(2)).sqrt() < BASE_RADIUS {
+            base.health -= enemy_stat.damage;
+            commands.entity(enemy_entity).despawn();
+            if base.health <= 0 {
+                info!("game over!");
+                game_state.set(GameState::GameEnd);
+            }
+        }
     }
+
+}
 
 
 fn place_enemy(mut commands: Commands, 
