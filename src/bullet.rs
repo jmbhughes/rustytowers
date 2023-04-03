@@ -45,7 +45,9 @@ pub fn move_bullets(
                 transform.translation.y +=
                         step / dist * (target_transform.translation.y - transform.translation.y);
             } else {
-                target_stats.health -= bullet.damage;
+                if target_stats.health >= bullet.damage {
+                    target_stats.health -= bullet.damage;
+                }
                 commands.entity(bullet_entity).despawn();
                 if target_stats.health <= 0 {
                     commands.entity(target_entity).despawn();
