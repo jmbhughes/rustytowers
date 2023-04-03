@@ -125,25 +125,9 @@ fn place_enemy(mut commands: Commands,
                 panic!("no window!");
         };
 
-
         let Ok((base, base_transform)) = base_query.get_single() else {
             panic!("no base!");
         };
-
-        // if let Some(_position) = window.cursor_position() {
-        //     if mouse_button_input.just_released(MouseButton::Right) {
-        //         let x = _position.x - window.width() / 2.0;
-        //         let y = _position.y - window.height() / 2.0;
-        //         commands.spawn((
-        //             EnemyBundle::new(x, y, base_transform.translation.truncate()),
-        //             MaterialMesh2dBundle {
-        //                 mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
-        //                 material: materials.add(ColorMaterial::from(ENEMY_COLOR)),
-        //                 transform: Transform::from_xyz(x, y, 0.),
-        //                 ..default()
-        //         }));
-        //    }   
-        // }
 
         wave_timer.timer.tick(time.delta());
 

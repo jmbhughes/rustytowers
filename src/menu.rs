@@ -1,6 +1,6 @@
 use bevy::{app::AppExit, prelude::*};
 
-use super::{despawn_screen, DisplayQuality, GameState, Volume, TEXT_COLOR};
+use super::{despawn_with_component, DisplayQuality, GameState, Volume, TEXT_COLOR};
 
 // This plugin manages the menu, with 5 different screens:
 // - a main menu with "New Game", "Settings", "Quit"
@@ -19,25 +19,25 @@ impl Plugin for MenuPlugin {
             // Systems to handle the main menu screen
             .add_systems((
                 main_menu_setup.in_schedule(OnEnter(MenuState::Main)),
-                despawn_screen::<OnMainMenuScreen>.in_schedule(OnExit(MenuState::Main)),
+                despawn_with_component::<OnMainMenuScreen>.in_schedule(OnExit(MenuState::Main)),
             ))
             // Systems to handle the settings menu screen
             .add_systems((
                 settings_menu_setup.in_schedule(OnEnter(MenuState::Settings)),
-                despawn_screen::<OnSettingsMenuScreen>.in_schedule(OnExit(MenuState::Settings)),
+                despawn_with_component::<OnSettingsMenuScreen>.in_schedule(OnExit(MenuState::Settings)),
             ))
             // Systems to handle the display settings screen
             .add_systems((
                 display_settings_menu_setup.in_schedule(OnEnter(MenuState::SettingsDisplay)),
                 setting_button::<DisplayQuality>.in_set(OnUpdate(MenuState::SettingsDisplay)),
-                despawn_screen::<OnDisplaySettingsMenuScreen>
+                despawn_with_component::<OnDisplaySettingsMenuScreen>
                     .in_schedule(OnExit(MenuState::SettingsDisplay)),
             ))
             // Systems to handle the sound settings screen
             .add_systems((
                 sound_settings_menu_setup.in_schedule(OnEnter(MenuState::SettingsSound)),
                 setting_button::<Volume>.in_set(OnUpdate(MenuState::SettingsSound)),
-                despawn_screen::<OnSoundSettingsMenuScreen>
+                despawn_with_component::<OnSoundSettingsMenuScreen>
                     .in_schedule(OnExit(MenuState::SettingsSound)),
             ))
             // Common systems to all screens that handles buttons behaviour

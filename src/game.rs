@@ -4,21 +4,22 @@ use std::time::Duration;
 use bevy::{
     prelude::*,
     sprite::MaterialMesh2dBundle,
-    input::mouse::{MouseButtonInput, MouseMotion, MouseWheel}, window::PrimaryWindow,
+    input::{mouse::{MouseButtonInput, MouseMotion, MouseWheel}, keyboard::KeyboardInput}, window::PrimaryWindow,
     text::{BreakLineOn, Text2dBounds},
 };
 
 use super::GameState;
 
-use crate::{tower::{TowerBundle, TowerStats, TOWER_RADIUS, TOWER_COLOR, TowerPlugin}, base::BASE_COLOR};
+use crate::{tower::{TowerBundle, TowerStats, TOWER_RADIUS, TOWER_COLOR, TowerPlugin}, base::BASE_COLOR, game, despawn_with_component, bullet::Bullet, enemy::EnemyStats};
 use crate::enemy::{EnemyPlugin, WaveTimer, ENEMY_SPAWN_INTERVAL_SECONDS};
 use crate::bullet::BulletPlugin;
 use crate::base::{Base, BASE_RADIUS};
 
-
-
 #[derive(Component)]
 struct AnimateTranslation;
+
+#[derive(Component)]
+struct EndGameText;
 
 pub struct GamePlugin;
 
@@ -28,8 +29,25 @@ impl Plugin for GamePlugin {
         .add_plugin(TowerPlugin)
         .add_plugin(EnemyPlugin)
         .add_plugin(BulletPlugin)
+        .insert_resource(WaveTimer {
+            // create the repeating timer
+            timer: Timer::new(Duration::from_secs(ENEMY_SPAWN_INTERVAL_SECONDS as u64), TimerMode::Repeating),
+        })
         .add_system(animate_translation)
-        .add_system(end_game.in_schedule(OnEnter(GameState::GameEnd)));
+        .add_system(end_game.in_schedule(OnEnter(GameState::GameEnd)))
+        .add_system(
+            despawn_with_component::<TowerStats>.in_schedule(OnEnter(GameState::Menu)),
+        )
+        .add_system(
+            despawn_with_component::<Bullet>.in_schedule(OnEnter(GameState::Menu)),
+        )
+        .add_system(
+            despawn_with_component::<EnemyStats>.in_schedule(OnEnter(GameState::Menu)),
+        )
+        .add_system(
+            despawn_with_component::<Base>.in_schedule(OnEnter(GameState::Menu)),
+        )
+        .add_system(listen_for_restart.run_if(in_state(GameState::GameEnd)));
     }
 }
 
@@ -52,7 +70,8 @@ fn startup(mut commands: Commands,
     });
 }
 
-fn end_game(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn end_game(mut commands: Commands, asset_server: Res<AssetServer>, time: Res<Time>,
+     mut game_state: ResMut<NextState<GameState>>) {
     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
     let text_style = TextStyle {
         font: font.clone(),
@@ -62,12 +81,28 @@ fn end_game(mut commands: Commands, asset_server: Res<AssetServer>) {
     let text_alignment = TextAlignment::Center;
     commands.spawn((
         Text2dBundle {
-            text: Text::from_section("Game Over!", text_style.clone())
+            text: Text::from_section("Game Over! Press any key to return to the menu.", text_style.clone())
                 .with_alignment(text_alignment),
             ..default()
         },
-        AnimateTranslation,
+        EndGameText
     ));
+}
+
+fn listen_for_restart(mut commands: Commands, 
+    mut key_evr: EventReader<KeyboardInput>, 
+    mut game_state: ResMut<NextState<GameState>>,
+    query: Query<Entity, With<EndGameText>>) {
+    for ev in key_evr.iter() {
+        match ev.state {
+            _ => {
+                for entity in query.iter() {
+                    commands.entity(entity).despawn();
+                }
+                game_state.set(GameState::Menu);
+            }, 
+        }
+    }
 }
 
 fn animate_translation(

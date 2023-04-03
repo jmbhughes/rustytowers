@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::{despawn_screen, GameState};
+use super::{despawn_with_component, GameState};
 
 // This plugin will display a splash screen with Bevy logo for 1 second before switching to the menu
 pub struct SplashPlugin;
@@ -15,7 +15,7 @@ impl Plugin for SplashPlugin {
             .add_system(countdown.in_set(OnUpdate(GameState::Splash)))
             // When exiting the state, despawn everything that was spawned for this screen
             .add_system(
-                despawn_screen::<OnSplashScreen>.in_schedule(OnExit(GameState::Splash)),
+                despawn_with_component::<OnSplashScreen>.in_schedule(OnExit(GameState::Splash)),
             );
     }
 }
