@@ -52,9 +52,6 @@ fn end_game(mut commands: Commands, asset_server: Res<AssetServer>) {
         color: Color::WHITE,
     };
     let text_alignment = TextAlignment::Center;
-    // 2d camera
-    commands.spawn(Camera2dBundle::default());
-    // Demonstrate changing translation
     commands.spawn((
         Text2dBundle {
             text: Text::from_section("Game Over!", text_style.clone())

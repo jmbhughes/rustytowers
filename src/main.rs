@@ -20,7 +20,6 @@ use bevy::{
       GameEnd
   }
   
-  // One of the two settings that can be set through the menu. It will be a resource in the app
   #[derive(Resource, Debug, Component, PartialEq, Eq, Clone, Copy)]
   enum DisplayQuality {
       Low,
@@ -28,7 +27,6 @@ use bevy::{
       High,
   }
   
-  // One of the two settings that can be set through the menu. It will be a resource in the app
   #[derive(Resource, Debug, Component, PartialEq, Eq, Clone, Copy)]
   struct Volume(u32);
   

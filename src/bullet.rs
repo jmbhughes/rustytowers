@@ -57,28 +57,3 @@ pub fn move_bullets(
         }
     }
 }
-
-// pub fn spawn_bullet(
-//     x: f32,
-//     y: f32,
-//     target: Entity,
-//     damage: u32,
-//     speed: f32,
-//     mut meshes: ResMut<Assets<Mesh>>,
-//     mut materials: ResMut<Assets<ColorMaterial>>,
-//     commands: &mut Commands
-// ) {
-//     commands.spawn((
-//         MaterialMesh2dBundle {
-//             mesh: meshes.add(shape::Circle::new(BULLET_RADIUS).into()).into(),
-//             material: materials.add(ColorMaterial::from(BULLET_COLOR)),
-//             transform: Transform::from_xyz(x, y, 0.),
-//             ..default()
-//         },
-//         Bullet {
-//             target,
-//             damage,
-//             speed
-//         },
-//     ));
-// }
