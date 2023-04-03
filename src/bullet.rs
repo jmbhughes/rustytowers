@@ -53,7 +53,7 @@ pub fn move_bullets(
             }
 
         } else {
-
+            commands.entity(bullet_entity).despawn();
         }
     }
 }

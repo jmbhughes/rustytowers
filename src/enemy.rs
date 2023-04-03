@@ -4,6 +4,7 @@ use bevy::{
     input::mouse::{MouseButtonInput, MouseMotion, MouseWheel}, window::PrimaryWindow
 };
 use super::GameState;
+use crate::base::Base;
 
 pub struct EnemyPlugin;
 
@@ -39,13 +40,13 @@ pub struct EnemyBundle {
 }
 
 impl EnemyBundle {
-    pub fn new(x: f32, y: f32) -> Self {
+    pub fn new(x: f32, y: f32, destination: Vec2) -> Self {
         Self {
             stats: EnemyStats {
                 health: 100,
                 x: x,
                 y: y,
-                destination: [1000., 1000.].into(),
+                destination: destination,
                 speed: 50.
             },
             state: EnemyState {
@@ -59,6 +60,9 @@ impl EnemyBundle {
 fn move_enemy(
     time: Res<Time>, 
     mut enemy_query: Query<(&EnemyStats, &mut Transform)>) {
+
+
+
         for (enemy_stat, mut transform) in enemy_query.iter_mut() {
             let dist = transform
             .translation
@@ -74,17 +78,24 @@ fn move_enemy(
         }
     }
 
+
 fn place_enemy(mut commands: Commands, 
     mouse_button_input: Res<Input<MouseButton>>, 
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    game_state: Res<State<GameState>>) {
+    game_state: Res<State<GameState>>,
+    base_query: Query<(&Base, &Transform)>) {
 
     if game_state.0 == GameState::Game {
 
         let Ok(window) = primary_window_query.get_single() else {
-                return;
+                panic!("no window!");
+        };
+
+
+        let Ok((base, base_transform)) = base_query.get_single() else {
+            panic!("no base!");
         };
 
         if let Some(_position) = window.cursor_position() {
@@ -94,7 +105,7 @@ fn place_enemy(mut commands: Commands,
                 let x = _position.x - window.width() / 2.0;
                 let y = _position.y - window.height() / 2.0;
                 commands.spawn((
-                    EnemyBundle::new(x, y),
+                    EnemyBundle::new(x, y, base_transform.translation.truncate()),
                     MaterialMesh2dBundle {
                         mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
                         material: materials.add(ColorMaterial::from(ENEMY_COLOR)),
