@@ -107,7 +107,8 @@ fn place_tower(
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    game_state: Res<State<GameState>>) {
+    game_state: Res<State<GameState>>
+) {
 
     if game_state.0 == GameState::Game {
 
@@ -116,7 +117,7 @@ fn place_tower(
         };
 
         if let Some(_position) = window.cursor_position() {
-            if mouse_button_input.just_released(MouseButton::Left) {
+            if mouse_button_input.just_pressed(MouseButton::Left) {
                 info!("left mouse just released");
                 info!("{} {}", _position.x, _position.y);
                 let x = _position.x - window.width() / 2.0;
