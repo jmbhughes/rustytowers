@@ -78,32 +78,35 @@ fn shoot_enemies(
     mut materials: ResMut<Assets<ColorMaterial>> ) {
 
     for (tower_stat, mut tower_state) in tower_query.iter_mut() {
+        // only fire if the tower is not on cooldown
         tower_state.timer.tick(time.delta());
         if !tower_state.timer.finished() {
             continue;
         }
 
+        // find the closest enemy
         let closest_result = enemy_query.iter()
             .map(|(enemy, transform)| (enemy, ((transform.translation.x - tower_stat.x).powi(2) + (transform.translation.y - tower_stat.y).powi(2)).sqrt()))
             .min_by(|(enemy1, distance1), (enemy2, distance2)| distance1.total_cmp(distance2));
 
+        // if there was a closest enemy, fire a bullet if they're within range
         if let Some((closest_enemy, closest_distance)) = closest_result {
-        if closest_distance < tower_stat.range {
-            commands.spawn((
-                MaterialMesh2dBundle {
-                    mesh: meshes.add(shape::Circle::new(BULLET_RADIUS).into()).into(),
-                    material: materials.add(ColorMaterial::from(BULLET_COLOR)),
-                    transform: Transform::from_xyz(tower_stat.x, tower_stat.y, 0.),
-                    ..default()
-                },
-                Bullet {
-                    target: closest_enemy,
-                    damage: 50.,
-                    speed: 500.
-                },
-            ));
-            break;
-          }
+            if closest_distance < tower_stat.range {
+                commands.spawn((
+                    MaterialMesh2dBundle {
+                        mesh: meshes.add(shape::Circle::new(BULLET_RADIUS).into()).into(),
+                        material: materials.add(ColorMaterial::from(BULLET_COLOR)),
+                        transform: Transform::from_xyz(tower_stat.x, tower_stat.y, 0.),
+                        ..default()
+                    },
+                    Bullet {
+                        target: closest_enemy,
+                        damage: 50.,
+                        speed: 500.
+                    },
+                ));
+                break;
+            }
         }
     }
 }
