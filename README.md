@@ -6,3 +6,6 @@ It's a tower defense game with the catch that placing a tower damages all the ne
 
 ## How to play
 Right now it's very much under construction, but if you'd like to prototype it download the repo and run `cargo run --release`. Eventually, I plan to release a version on itch.io for fellow jammers to play and rate. 
+
+## To build with WASM
+Follow [these steps](https://bevy-cheatbook.github.io/platforms/wasm.html).
