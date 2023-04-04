@@ -105,7 +105,6 @@ fn shoot_enemies(
                         speed: 500.
                     },
                 ));
-                break;
             }
         }
     }
