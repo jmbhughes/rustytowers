@@ -14,11 +14,12 @@ pub struct TowerPlugin;
 
 pub const TOWER_RADIUS: f32 = 25.;
 pub const TOWER_COLOR: Color = Color::PURPLE;
-
+pub const TOWER_INITIAL_HEALTH: f32 = 100.;
 
 impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(place_tower)
+        .add_system(sync_size)
         .add_system(shoot_enemies);
     }
 }
@@ -58,7 +59,7 @@ impl TowerBundle {
                 damage: 1.,
                 upgrade_price: 10,
                 speed: 1.0,
-                health: 100.
+                health: TOWER_INITIAL_HEALTH
             },
             state: TowerState {
                 timer: Timer::from_seconds(0.1, TimerMode::Repeating),
@@ -176,5 +177,16 @@ fn place_tower(
                 
             }   
     }
+    }
+}
+
+
+fn compute_scale(health: f32) -> f32 {
+    (health / TOWER_INITIAL_HEALTH).max(0.25)
+}
+
+fn sync_size(mut tower_query: Query<(&TowerStats, &mut Transform)>) {
+    for (tower_stat, mut tower_transform) in tower_query.iter_mut() {
+        tower_transform.scale = Vec3::splat(compute_scale(tower_stat.health));
     }
 }

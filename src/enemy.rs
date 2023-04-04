@@ -13,8 +13,7 @@ impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(place_enemy.run_if(in_state(GameState::Game)))
            .add_system(move_enemy.run_if(in_state(GameState::Game)))
-           .add_system(enemy_damage_base.run_if(in_state(GameState::Game)));
-    }
+           .add_system(enemy_damage_base.run_if(in_state(GameState::Game)));    }
 }
 
 
@@ -107,7 +106,6 @@ fn enemy_damage_base(
 
 }
 
-
 fn place_enemy(mut commands: Commands, 
     mouse_button_input: Res<Input<MouseButton>>, 
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
@@ -118,7 +116,6 @@ fn place_enemy(mut commands: Commands,
     time: Res<Time>,
     mut wave_timer: ResMut<WaveTimer>
 ) {
-
     if game_state.0 == GameState::Game {
 
         let Ok(window) = primary_window_query.get_single() else {

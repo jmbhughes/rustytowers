@@ -13,7 +13,7 @@ use super::GameState;
 use crate::{tower::{TowerBundle, TowerStats, TOWER_RADIUS, TOWER_COLOR, TowerPlugin}, base::BASE_COLOR, game, despawn_with_component, bullet::Bullet, enemy::EnemyStats};
 use crate::enemy::{EnemyPlugin, WaveTimer, ENEMY_SPAWN_INTERVAL_SECONDS};
 use crate::bullet::BulletPlugin;
-use crate::base::{Base, BASE_RADIUS};
+use crate::base::{Base, BASE_RADIUS, BASE_INITIAL_HEALTH};
 
 #[derive(Component)]
 struct AnimateTranslation;
@@ -34,6 +34,7 @@ impl Plugin for GamePlugin {
             timer: Timer::new(Duration::from_secs(ENEMY_SPAWN_INTERVAL_SECONDS as u64), TimerMode::Repeating),
         })
         .add_system(animate_translation)
+        .add_system(sync_base_size)
         .add_system(end_game.in_schedule(OnEnter(GameState::GameEnd)))
         .add_system(
             despawn_with_component::<TowerStats>.in_schedule(OnEnter(GameState::Menu)),
@@ -51,11 +52,21 @@ impl Plugin for GamePlugin {
     }
 }
 
+fn compute_scale(health: f32) -> f32 {
+    (health / BASE_INITIAL_HEALTH).max(0.25)
+}
+
+fn sync_base_size(mut base_query: Query<(&Base, &mut Transform)>) {
+    for (base, mut base_transform) in base_query.iter_mut() {
+        base_transform.scale = Vec3::splat(compute_scale(base.health));
+    }
+}
+
 fn startup(mut commands: Commands,    
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>) {
 
-    commands.spawn((Base {health: 1000.}, 
+    commands.spawn((Base {health: BASE_INITIAL_HEALTH}, 
     MaterialMesh2dBundle {
         mesh: meshes.add(shape::Circle::new(BASE_RADIUS).into()).into(),
         material: materials.add(ColorMaterial::from(BASE_COLOR)),
