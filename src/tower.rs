@@ -56,9 +56,9 @@ impl TowerBundle {
                 y: y,
                 level: 1,
                 range: 128.0,
-                damage: 1.,
+                damage: 50.,
                 upgrade_price: 10,
-                speed: 1.0,
+                speed: 500.0,
                 health: TOWER_INITIAL_HEALTH
             },
             state: TowerState {
@@ -101,8 +101,8 @@ fn shoot_enemies(
                     },
                     Bullet {
                         target: closest_enemy,
-                        damage: 50.,
-                        speed: 500.
+                        damage: tower_stat.damage,
+                        speed: tower_stat.speed
                     },
                 ));
             }
