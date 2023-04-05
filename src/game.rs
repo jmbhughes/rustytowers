@@ -14,6 +14,7 @@ use crate::{tower::{TowerBundle, TowerStats, TOWER_RADIUS, TOWER_COLOR, TowerPlu
 use crate::enemy::{EnemyPlugin, WaveTimer, ENEMY_SPAWN_INTERVAL_SECONDS};
 use crate::bullet::BulletPlugin;
 use crate::base::{Base, BASE_RADIUS, BASE_INITIAL_HEALTH};
+use crate::season::{SeasonPlugin, SeasonBarPart};
 
 #[derive(Component)]
 struct AnimateTranslation;
@@ -29,6 +30,7 @@ impl Plugin for GamePlugin {
         .add_plugin(TowerPlugin)
         .add_plugin(EnemyPlugin)
         .add_plugin(BulletPlugin)
+        .add_plugin(SeasonPlugin)
         .insert_resource(WaveTimer {
             // create the repeating timer
             timer: Timer::new(Duration::from_secs(ENEMY_SPAWN_INTERVAL_SECONDS as u64), TimerMode::Repeating),
@@ -47,6 +49,9 @@ impl Plugin for GamePlugin {
         )
         .add_system(
             despawn_with_component::<Base>.in_schedule(OnEnter(GameState::Menu)),
+        )
+        .add_system(
+            despawn_with_component::<SeasonBarPart>.in_schedule(OnEnter(GameState::Menu)),
         )
         .add_system(listen_for_restart.run_if(in_state(GameState::GameEnd)));
     }
