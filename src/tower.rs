@@ -9,6 +9,7 @@ use crate::bullet::{BULLET_COLOR, BULLET_RADIUS, Bullet};
 use super::GameState;
 use crate::game::{fall_off_damage_curve, euclidean_distance};
 use crate::base::Base;
+use crate::season::Season;
 
 pub struct TowerPlugin;
 
@@ -110,12 +111,17 @@ fn shoot_enemies(
     }
 }
 
+fn heal_tower() {
+    
+}
+
 fn place_tower(
     mut commands: Commands, 
     mouse_button_input: Res<Input<MouseButton>>, 
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    current_season: Res<State<Season>>,
     game_state: Res<State<GameState>>,
     mut update_game_state: ResMut<NextState<GameState>>,
     mut other_towers_query: Query<(Entity, &mut TowerStats, &Transform)>,
@@ -123,7 +129,7 @@ fn place_tower(
     mut base_query: Query<(&mut Base, &Transform)>,
 ) {
 
-    if game_state.0 == GameState::Game {
+    if game_state.0 == GameState::Game && current_season.0 == Season::Build {
 
         let Ok(window) = primary_window_query.get_single() else {
                 return;
@@ -167,7 +173,7 @@ fn place_tower(
                         base.health -= damage;
                     } else {
                         info!("base destroyed");
-                        update_game_state.set(GameState::GameEnd);
+                        update_game_state.set(GameState::GameLost);
                     }
                 }
 

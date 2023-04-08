@@ -18,7 +18,8 @@ use bevy::{
       Menu,
       Game,
       Pause,
-      GameEnd
+      GameLost,
+      GameWon
   }
   
   #[derive(Resource, Debug, Component, PartialEq, Eq, Clone, Copy)]

@@ -4,7 +4,8 @@ use std::time::Duration;
 use bevy::{
     prelude::*,
     sprite::MaterialMesh2dBundle,
-    input::{mouse::{MouseButtonInput, MouseMotion, MouseWheel}, keyboard::KeyboardInput}, window::PrimaryWindow,
+    input::{mouse::{MouseButtonInput, MouseMotion, MouseWheel}, keyboard::KeyboardInput}, 
+    window::PrimaryWindow,
     text::{BreakLineOn, Text2dBounds},
 };
 
@@ -37,7 +38,8 @@ impl Plugin for GamePlugin {
         })
         .add_system(animate_translation)
         .add_system(sync_base_size)
-        .add_system(end_game.in_schedule(OnEnter(GameState::GameEnd)))
+        .add_system(end_game.in_schedule(OnEnter(GameState::GameWon)))
+        .add_system(end_game.in_schedule(OnEnter(GameState::GameLost)))
         .add_system(
             despawn_with_component::<TowerStats>.in_schedule(OnEnter(GameState::Menu)),
         )
@@ -53,7 +55,11 @@ impl Plugin for GamePlugin {
         .add_system(
             despawn_with_component::<SeasonBarPart>.in_schedule(OnEnter(GameState::Menu)),
         )
-        .add_system(listen_for_restart.run_if(in_state(GameState::GameEnd)));
+        .add_system(
+            despawn_with_component::<EndGameText>.in_schedule(OnEnter(GameState::Menu)),
+        )
+        .add_system(listen_for_restart.run_if(in_state(GameState::GameLost)))
+        .add_system(listen_for_restart.run_if(in_state(GameState::GameWon)));
     }
 }
 
@@ -86,8 +92,8 @@ fn startup(mut commands: Commands,
     });
 }
 
-fn end_game(mut commands: Commands, asset_server: Res<AssetServer>, time: Res<Time>,
-     mut game_state: ResMut<NextState<GameState>>) {
+
+fn end_game(mut commands: Commands, asset_server: Res<AssetServer>, game_state: Res<State<GameState>>) {
     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
     let text_style = TextStyle {
         font: font.clone(),
@@ -95,9 +101,16 @@ fn end_game(mut commands: Commands, asset_server: Res<AssetServer>, time: Res<Ti
         color: Color::WHITE,
     };
     let text_alignment = TextAlignment::Center;
+
+    let text = match game_state.0 {
+        GameState::GameWon => "You win! Good job!\nPress any key to return to the menu.",
+        GameState::GameLost => "Game Over! You lost.\nPress any key to return to the menu.",
+        _ => "unreachable"
+    };
+
     commands.spawn((
         Text2dBundle {
-            text: Text::from_section("Game Over! Press any key to return to the menu.", text_style.clone())
+            text: Text::from_section(text, text_style.clone())
                 .with_alignment(text_alignment),
             ..default()
         },

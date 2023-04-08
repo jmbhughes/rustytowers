@@ -99,7 +99,7 @@ fn enemy_damage_base(
             base.health -= enemy_stat.damage;
             commands.entity(enemy_entity).despawn();
             if base.health <= 0. {
-                game_state.set(GameState::GameEnd);
+                game_state.set(GameState::GameLost);
             }
         }
     }

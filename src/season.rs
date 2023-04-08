@@ -2,6 +2,7 @@ use bevy::{prelude::*,
             window::PrimaryWindow,
             sprite::MaterialMesh2dBundle,
 };
+use std::time::Duration;
 
 use super::GameState;
 
@@ -12,13 +13,19 @@ impl Plugin for SeasonPlugin {
         app.add_system(update_season_bar.run_if(in_state(GameState::Game)))
            .add_system(initialize_season_bar.in_schedule(OnEnter(GameState::Game)))
            .add_state::<Season>()
-           .insert_resource(ElapsedCounter {seconds_elapsed: 0., pixels_per_second: 0.});
+           .insert_resource(ElapsedCounter {seconds_elapsed: 0., pixels_per_second: 0.})
+           .insert_resource(SeasonSchedule {
+            intervals: vec![SeasonInterval{season: Season::Build, duration: 10.}, 
+            SeasonInterval{season: Season::Heal, duration: 5.}],
+            current_season_index: 0,
+            current_season_timer: Timer::new(Duration::from_secs(10. as u64), TimerMode::Once)
+           });
     }
 }
 
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-  enum Season {
+pub enum Season {
       #[default]
       Build,
       Heal,
@@ -42,6 +49,13 @@ pub struct ElapsedCounter {
     pub pixels_per_second: f32
 }
 
+#[derive(Resource)]
+pub struct SeasonSchedule {
+    intervals: Vec<SeasonInterval>,
+    current_season_timer: Timer,
+    current_season_index: usize
+}
+
 struct SeasonInterval {
     season : Season,
     duration : f32
@@ -60,17 +74,21 @@ fn initialize_season_bar(mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
+    mut season_schedule: ResMut<SeasonSchedule>,
+    mut current_season: ResMut<NextState<Season>>,
 ) {
     info!("initialize season bar");
 
-    let season_data = vec![SeasonInterval{season: Season::Build, duration: 120.}, 
-                                                SeasonInterval{season: Season::Heal, duration: 30.}];
-
+    season_schedule.current_season_index = 0;
+    let next_interval = season_schedule.intervals.get(season_schedule.current_season_index).unwrap();
+    current_season.set(next_interval.season);
+    season_schedule.current_season_timer = Timer::new(Duration::from_secs(next_interval.duration as u64), TimerMode::Once);
+    
     let Ok(window) = primary_window_query.get_single() else {
         panic!("no window!");
     };
 
-    let total_duration: f32 = season_data.iter()
+    let total_duration: f32 = season_schedule.intervals.iter()
         .map(|interval| interval.duration)
         .sum();
 
@@ -91,7 +109,7 @@ fn initialize_season_bar(mut commands: Commands,
         ..default()
     }, SeasonBarTimeIndicator, SeasonBarPart));
 
-    for interval in season_data.iter() {
+    for interval in season_schedule.intervals.iter() {
         let width = interval.duration / total_duration * window.width();
         commands.spawn((SpriteBundle {
             sprite: Sprite {
@@ -111,8 +129,26 @@ fn initialize_season_bar(mut commands: Commands,
 
 fn update_season_bar(time: Res<Time>,
     mut elapsed_counter: ResMut<ElapsedCounter>, 
-    mut season_time_indicator_query: Query<(&SeasonBarTimeIndicator, &mut Transform)>) {
+    mut season_time_indicator_query: Query<(&SeasonBarTimeIndicator, &mut Transform)>,
+    mut season_schedule: ResMut<SeasonSchedule>,
+    mut current_season: ResMut<NextState<Season>>,
+    mut game_state: ResMut<NextState<GameState>>
+) {
     let delta = time.delta_seconds();
+
+    season_schedule.current_season_timer.tick(time.delta());
+    if season_schedule.current_season_timer.finished() {
+        season_schedule.current_season_index += 1;
+        if season_schedule.current_season_index < season_schedule.intervals.len() {
+            let next_interval = season_schedule.intervals.get(season_schedule.current_season_index).unwrap();
+            current_season.set(next_interval.season);
+            season_schedule.current_season_timer = Timer::new(Duration::from_secs(next_interval.duration as u64), TimerMode::Once);
+            info!("season changed");
+        } else {
+            info!("THE GAME HAS BEEN WON!");
+            game_state.set(GameState::GameWon);
+        }
+    }
 
     let Ok((_, mut transform)) = season_time_indicator_query.get_single_mut() else {
         info!("no bar indicator!");
@@ -120,4 +156,5 @@ fn update_season_bar(time: Res<Time>,
     };
 
     transform.translation.x += delta * elapsed_counter.pixels_per_second;
+    
 }
