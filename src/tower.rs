@@ -4,10 +4,10 @@ use bevy::{
     input::mouse::{MouseButtonInput, MouseMotion, MouseWheel}, window::PrimaryWindow
 };
 
-use crate::enemy::EnemyStats;
+use crate::{enemy::{EnemyStats, WaveTimer, ENEMY_SPAWN_INTERVAL_SECONDS}, base::BASE_RADIUS};
 use crate::bullet::{BULLET_COLOR, BULLET_RADIUS, Bullet};
 use super::GameState;
-use crate::game::{fall_off_damage_curve, euclidean_distance};
+use crate::game::{fall_off_damage_curve, euclidean_distance, HEAL_AMOUNT};
 use crate::base::Base;
 use crate::season::Season;
 
@@ -21,7 +21,8 @@ impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(place_tower)
         .add_system(sync_size)
-        .add_system(shoot_enemies);
+        .add_system(shoot_enemies)
+        .add_system(heal_tower_and_base);
     }
 }
 
@@ -111,10 +112,6 @@ fn shoot_enemies(
     }
 }
 
-fn heal_tower() {
-    
-}
-
 fn place_tower(
     mut commands: Commands, 
     mouse_button_input: Res<Input<MouseButton>>, 
@@ -191,6 +188,51 @@ fn place_tower(
     }
     }
 }
+
+fn heal_tower_and_base(
+    mut commands: Commands, 
+    mouse_button_input: Res<Input<MouseButton>>, 
+    primary_window_query: Query<&Window, With<PrimaryWindow>>,
+    current_season: Res<State<Season>>,
+    game_state: Res<State<GameState>>,
+    mut towers_query: Query<(&mut TowerStats, &Transform)>,
+    mut base_query: Query<(&mut Base, &Transform)>,
+    mut wave_timer: ResMut<WaveTimer>
+) {
+
+    if game_state.0 == GameState::Game && current_season.0 == Season::Heal {
+
+        let Ok(window) = primary_window_query.get_single() else {
+                return;
+        };
+
+        if let Some(_position) = window.cursor_position() {
+            if mouse_button_input.just_pressed(MouseButton::Left) {
+                let x = _position.x - window.width() / 2.0;
+                let y = _position.y - window.height() / 2.0;
+
+                                
+                for (mut tower_stat, tower_transform) in towers_query.iter_mut() {
+                    let distance = euclidean_distance(x, y, tower_transform.translation.x, tower_transform.translation.y);
+                    if distance < TOWER_RADIUS * tower_transform.scale.x{
+                        tower_stat.health += HEAL_AMOUNT;
+                        wave_timer.force_wave = true;
+                    }
+                }
+
+                for (mut base, base_transform) in base_query.iter_mut() {
+                    let distance = euclidean_distance(x, y, base_transform.translation.x, base_transform.translation.y);
+                    if distance < BASE_RADIUS * base_transform.scale.x {
+                        base.health += HEAL_AMOUNT;
+                        wave_timer.force_wave = true;
+                    }
+                }
+                
+            }   
+    }
+    }
+}
+
 
 
 fn compute_scale(health: f32) -> f32 {

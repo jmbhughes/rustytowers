@@ -11,7 +11,7 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(place_enemy.run_if(in_state(GameState::Game)))
+        app.add_system(spawn_enemy.run_if(in_state(GameState::Game)))
            .add_system(move_enemy.run_if(in_state(GameState::Game)))
            .add_system(enemy_damage_base.run_if(in_state(GameState::Game)));    }
 }
@@ -25,7 +25,8 @@ pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 15;
 
 #[derive(Resource)]
 pub struct WaveTimer {
-    pub timer: Timer
+    pub timer: Timer,
+    pub force_wave: bool
 }
 
 #[derive(Component, Default)]
@@ -106,8 +107,7 @@ fn enemy_damage_base(
 
 }
 
-fn place_enemy(mut commands: Commands, 
-    mouse_button_input: Res<Input<MouseButton>>, 
+fn spawn_enemy(mut commands: Commands, 
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
@@ -128,7 +128,7 @@ fn place_enemy(mut commands: Commands,
 
         wave_timer.timer.tick(time.delta());
 
-        if wave_timer.timer.finished() {
+        if wave_timer.timer.finished() || wave_timer.force_wave {
             let mut rng = rand::thread_rng();
 
             for _ in 0..ENEMY_SPAWN_PER_INTERVAL {
@@ -144,6 +144,7 @@ fn place_enemy(mut commands: Commands,
                         ..default()
                     }));
             }
+            wave_timer.force_wave = false;
         }
     }
 }
