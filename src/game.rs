@@ -25,7 +25,7 @@ struct EndGameText;
 
 pub struct GamePlugin;
 
-pub const HEAL_AMOUNT: f32 = 25.0;
+pub const HEAL_AMOUNT: f32 = 100.0;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
@@ -88,12 +88,6 @@ fn startup(mut commands: Commands,
         ..default()
     }
     ));
-
-    // commands.insert_resource(WaveTimer {
-    //     // create the repeating timer
-    //     timer: Timer::new(Duration::from_secs(ENEMY_SPAWN_INTERVAL_SECONDS as u64), TimerMode::Repeating),
-    //     force
-    // });
 }
 
 

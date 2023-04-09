@@ -19,8 +19,8 @@ impl Plugin for EnemyPlugin {
 
 pub const ENEMY_RADIUS: f32 = 5.;
 pub const ENEMY_COLOR: Color = Color::BLACK;
-pub const ENEMY_SPAWN_INTERVAL_SECONDS: u32 = 5;
-pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 15;
+pub const ENEMY_SPAWN_INTERVAL_SECONDS: u32 = 3;
+pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 25;
 
 
 #[derive(Resource)]
@@ -96,7 +96,7 @@ fn enemy_damage_base(
     };
 
     for (enemy_entity, enemy_stat, enemy_transform) in enemy_query.iter() {
-        if ((enemy_transform.translation.x - base_transform.translation.x).powi(2) + (enemy_transform.translation.y - base_transform.translation.y).powi(2)).sqrt() < BASE_RADIUS {
+        if ((enemy_transform.translation.x - base_transform.translation.x).powi(2) + (enemy_transform.translation.y - base_transform.translation.y).powi(2)).sqrt() < BASE_RADIUS * base_transform.scale.x {
             base.health -= enemy_stat.damage;
             commands.entity(enemy_entity).despawn();
             if base.health <= 0. {

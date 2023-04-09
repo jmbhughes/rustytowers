@@ -16,7 +16,10 @@ impl Plugin for SeasonPlugin {
            .insert_resource(ElapsedCounter {seconds_elapsed: 0., pixels_per_second: 0.})
            .insert_resource(SeasonSchedule {
             intervals: vec![SeasonInterval{season: Season::Build, duration: 10.}, 
-            SeasonInterval{season: Season::Heal, duration: 5.}],
+                            SeasonInterval{season: Season::Heal, duration: 5.},
+                            SeasonInterval{season: Season::Build, duration: 15.},
+                            SeasonInterval{season: Season::Heal, duration: 3.},
+                            SeasonInterval{season: Season::Build, duration: 10.}],
             current_season_index: 0,
             current_season_timer: Timer::new(Duration::from_secs(10. as u64), TimerMode::Once)
            });
@@ -83,7 +86,7 @@ fn initialize_season_bar(mut commands: Commands,
     let next_interval = season_schedule.intervals.get(season_schedule.current_season_index).unwrap();
     current_season.set(next_interval.season);
     season_schedule.current_season_timer = Timer::new(Duration::from_secs(next_interval.duration as u64), TimerMode::Once);
-    
+
     let Ok(window) = primary_window_query.get_single() else {
         panic!("no window!");
     };

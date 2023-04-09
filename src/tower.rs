@@ -64,7 +64,7 @@ impl TowerBundle {
                 health: TOWER_INITIAL_HEALTH
             },
             state: TowerState {
-                timer: Timer::from_seconds(0.1, TimerMode::Repeating),
+                timer: Timer::from_seconds(0.15, TimerMode::Repeating),
             },
             ..Default::default()
         }
@@ -152,7 +152,7 @@ fn place_tower(
 
                 for (enemy_entity, mut enemy_stat, enemy_transform) in enemies_query.iter_mut() {
                     let distance = euclidean_distance(x, y, enemy_transform.translation.x, enemy_transform.translation.y);
-                    let damage = fall_off_damage_curve(distance, 100., 10., 4.);
+                    let damage = fall_off_damage_curve(distance, 200., 10., 4.);
                     if enemy_stat.health >= damage {
                         info!("enemy {} results in {} to {}", damage, enemy_stat.health, enemy_stat.health - damage);
                         enemy_stat.health -= damage;
@@ -229,7 +229,7 @@ fn heal_tower_and_base(
                 }
                 
             }   
-    }
+        }
     }
 }
 
