@@ -171,10 +171,7 @@ fn build_map(
 
         // for _ in 1..1000 {
         while !frontier.is_empty() {
-            info!("map size {} {}", map.width, map.height);
-            info!("frontier size: {}", frontier.length());
             let current = frontier.dequeue();
-            info!("current {} {}", current.x, current.y);
             for next in map.get_neighbors(current) {
                 if !map.came_from.contains_key(&next) {
                     frontier.enqueue(next);
@@ -215,10 +212,8 @@ fn update_map(
             if mouse_button_input.just_pressed(MouseButton::Right) {
                 let x = _position.x - window.width() / 2.0;
                 let y = _position.y - window.height() / 2.0;
-                info!("right click at {} {}", x, y);
                 let cell_x = ((x + (CELL_SIZE / 2.0)) / CELL_SIZE).floor();
                 let cell_y = ((y + (CELL_SIZE / 2.0)) / CELL_SIZE).floor();
-                info!("right click on cell {} {}", cell_x, cell_y);
 
                 commands.spawn(MaterialMesh2dBundle {
                     mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::new(CELL_SIZE, CELL_SIZE)))).into(),

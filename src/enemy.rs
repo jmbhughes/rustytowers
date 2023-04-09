@@ -19,8 +19,8 @@ impl Plugin for EnemyPlugin {
 
 pub const ENEMY_RADIUS: f32 = 5.;
 pub const ENEMY_COLOR: Color = Color::BLACK;
-pub const ENEMY_SPAWN_INTERVAL_SECONDS: u32 = 3;
-pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 50;
+pub const ENEMY_SPAWN_INTERVAL_SECONDS: u32 = 1;
+pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 150;
 
 
 #[derive(Resource)]
@@ -90,7 +90,6 @@ fn move_enemy(
             if dist < 3.0 {
                 let current_cell = CellCoordinate{x: ((transform.translation.x  + CELL_SIZE/2.) / CELL_SIZE).floor() as i32, 
                 y: ((transform.translation.y + CELL_SIZE/2.) /CELL_SIZE).floor() as i32};
-                info!("current cell to lookup {} {}", current_cell.x, current_cell.y);
                 let next_cell = match map.came_from.get(&current_cell) {
                     Some(&x) => x,
                     None => CellCoordinate{x: 0, y: 0},  // TODO: this is a hack. fix this problem 
