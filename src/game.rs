@@ -16,6 +16,7 @@ use crate::enemy::{EnemyPlugin, WaveTimer, ENEMY_SPAWN_INTERVAL_SECONDS};
 use crate::bullet::BulletPlugin;
 use crate::base::{Base, BASE_RADIUS, BASE_INITIAL_HEALTH};
 use crate::season::{SeasonPlugin, SeasonBarPart};
+use crate::map::MapPlugin;
 
 #[derive(Component)]
 struct AnimateTranslation;
@@ -34,6 +35,7 @@ impl Plugin for GamePlugin {
         .add_plugin(EnemyPlugin)
         .add_plugin(BulletPlugin)
         .add_plugin(SeasonPlugin)
+        .add_plugin(MapPlugin)
         .insert_resource(WaveTimer {
             // create the repeating timer
             timer: Timer::new(Duration::from_secs(ENEMY_SPAWN_INTERVAL_SECONDS as u64), TimerMode::Repeating),
