@@ -88,11 +88,22 @@ fn move_enemy(
                     step / dist * (enemy_stat.destination[1] - transform.translation.y);
 
             if dist < 3.0 {
-                let current_cell = CellCoordinate{x: (transform.translation.x / CELL_SIZE) as i32, 
-                                                                  y: (transform.translation.y / CELL_SIZE) as i32};
+                // let current_cell = CellCoordinate{x: (transform.translation.x / CELL_SIZE) as i32, 
+                //                                                   y: (transform.translation.y / CELL_SIZE) as i32};
+                let current_cell = CellCoordinate{x: ((transform.translation.x  + CELL_SIZE/2.) / CELL_SIZE).floor() as i32, 
+                y: ((transform.translation.y + CELL_SIZE/2.) /CELL_SIZE).floor() as i32};
                 info!("current cell to lookup {} {}", current_cell.x, current_cell.y);
-                let next_cell = map.came_from.get(&current_cell).unwrap();
-                enemy_stat.destination = Vec2::new(next_cell.x as f32 * CELL_SIZE, next_cell.y as f32 * CELL_SIZE);
+                let next_cell = match map.came_from.get(&current_cell) {
+                    Some(&x) => x,
+                    None => CellCoordinate{x: 0, y: 0},  // TODO: this is a hack. fix this problem 
+                  };
+                
+                let mut rng = rand::thread_rng();
+                let x_offset= rng.gen_range((-CELL_SIZE/ 4.)..(CELL_SIZE / 4.));
+                let y_offset = rng.gen_range((-CELL_SIZE/ 4.)..(CELL_SIZE / 4.));
+
+                enemy_stat.destination = Vec2::new(next_cell.x as f32 * CELL_SIZE + x_offset,
+                                                   next_cell.y as f32 * CELL_SIZE + y_offset);
             }
         }
 }
@@ -154,10 +165,16 @@ fn spawn_enemy(mut commands: Commands,
                 let x = rng.gen_range((-window.width() / 2.)..(window.width() / 2.));
                 let y = rng.gen_range((-window.height() / 2.)..(window.height() / 2.));
 
-                let spawn_cell = CellCoordinate{x: (x/CELL_SIZE) as i32, y: (y/CELL_SIZE) as i32};
-                if !map.has_wall(&spawn_cell) {
+                let spawn_cell = CellCoordinate{x: ((x + CELL_SIZE/2.) / CELL_SIZE).floor() as i32, 
+                                                                y: ((y + CELL_SIZE/2.) /CELL_SIZE).floor() as i32};
+                                                                
+                // let spawn_cell = CellCoordinate{x: (x /CELL_SIZE) as i32, 
+                //                                                 y: (y /CELL_SIZE) as i32};
+                if map.came_from.contains_key(&spawn_cell) && !map.has_wall(&spawn_cell) {
+                    let destination = map.came_from.get(&spawn_cell).unwrap();
                     commands.spawn((
-                        EnemyBundle::new(x, y, Vec2::new(x-1., y-1.)),//base_transform.translation.truncate()),
+                        EnemyBundle::new(x, y, Vec2::new(destination.x as f32 * CELL_SIZE,
+                                                                     destination.y as f32 * CELL_SIZE)),//base_transform.translation.truncate()),
                         MaterialMesh2dBundle {
                             mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
                             material: materials.add(ColorMaterial::from(ENEMY_COLOR)),

@@ -132,6 +132,8 @@ fn place_tower(
                 return;
         };
 
+        info!("screen size {} {}", window.width(), window.height());
+
         if let Some(_position) = window.cursor_position() {
             if mouse_button_input.just_pressed(MouseButton::Left) {
                 let x = _position.x - window.width() / 2.0;
