@@ -108,7 +108,7 @@ fn initialize_season_bar(mut commands: Commands,
             custom_size: Some(Vec2::new(10., SEASON_BAR_HEIGHT)),
             ..default()
         },
-        transform: Transform::from_translation(Vec3::new(accumulated_shift+5., bar_y, 1.)),
+        transform: Transform::from_translation(Vec3::new(accumulated_shift+5., bar_y, 5.)),
         ..default()
     }, SeasonBarTimeIndicator, SeasonBarPart));
 
@@ -120,7 +120,7 @@ fn initialize_season_bar(mut commands: Commands,
                 custom_size: Some(Vec2::new(width, SEASON_BAR_HEIGHT)),
                 ..default()
             },
-            transform: Transform::from_translation(Vec3::new(accumulated_shift+width/2., bar_y, 0.)),
+            transform: Transform::from_translation(Vec3::new(accumulated_shift+width/2., bar_y, 4.)),
             ..default()
         }, SeasonBarPart));
 

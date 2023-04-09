@@ -119,6 +119,7 @@ fn end_game(mut commands: Commands, asset_server: Res<AssetServer>, game_state: 
         Text2dBundle {
             text: Text::from_section(text, text_style.clone())
                 .with_alignment(text_alignment),
+            transform: Transform::from_translation(Vec3::new(0., 0., 6.)),
             ..default()
         },
         EndGameText

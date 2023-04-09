@@ -181,7 +181,7 @@ fn place_tower(
                     MaterialMesh2dBundle {
                         mesh: meshes.add(shape::Circle::new(TOWER_RADIUS).into()).into(),
                         material: materials.add(ColorMaterial::from(TOWER_COLOR)),
-                        transform: Transform::from_xyz(x, y, 0.),
+                        transform: Transform::from_xyz(x, y, 3.),
                         ..default()
                 }));
 
