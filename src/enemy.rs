@@ -4,7 +4,7 @@ use bevy::{
     input::mouse::{MouseButtonInput, MouseMotion, MouseWheel}, window::PrimaryWindow
 };
 use super::GameState;
-use crate::{base::{Base, BASE_RADIUS}, game};
+use crate::{base::{Base, BASE_RADIUS}, game, map::{CELL_SIZE, Map, CellCoordinate}};
 use rand::Rng;
 
 pub struct EnemyPlugin;
@@ -20,7 +20,7 @@ impl Plugin for EnemyPlugin {
 pub const ENEMY_RADIUS: f32 = 5.;
 pub const ENEMY_COLOR: Color = Color::BLACK;
 pub const ENEMY_SPAWN_INTERVAL_SECONDS: u32 = 3;
-pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 25;
+pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 250;
 
 
 #[derive(Resource)]
@@ -67,8 +67,14 @@ impl EnemyBundle {
 
 fn move_enemy(
     time: Res<Time>, 
-    mut enemy_query: Query<(&EnemyStats, &mut Transform)>) {
-        for (enemy_stat, mut transform) in enemy_query.iter_mut() {
+    mut enemy_query: Query<(&mut EnemyStats, &mut Transform)>,
+        map_query: Query<&Map>) {
+        
+        let Ok(map) = map_query.get_single() else {
+                panic!("no map!");
+        };
+
+        for (mut enemy_stat, mut transform) in enemy_query.iter_mut() {
             let dist = transform
             .translation
             .truncate()
@@ -80,6 +86,14 @@ fn move_enemy(
                     step / dist * (enemy_stat.destination[0] - transform.translation.x);
             transform.translation.y +=
                     step / dist * (enemy_stat.destination[1] - transform.translation.y);
+
+            if dist < 3.0 {
+                let current_cell = CellCoordinate{x: (transform.translation.x / CELL_SIZE) as i32, 
+                                                                  y: (transform.translation.y / CELL_SIZE) as i32};
+                info!("current cell to lookup {} {}", current_cell.x, current_cell.y);
+                let next_cell = map.came_from.get(&current_cell).unwrap();
+                enemy_stat.destination = Vec2::new(next_cell.x as f32 * CELL_SIZE, next_cell.y as f32 * CELL_SIZE);
+            }
         }
 }
 
@@ -114,7 +128,8 @@ fn spawn_enemy(mut commands: Commands,
     game_state: Res<State<GameState>>,
     base_query: Query<(&Base, &Transform)>,
     time: Res<Time>,
-    mut wave_timer: ResMut<WaveTimer>
+    mut wave_timer: ResMut<WaveTimer>,
+    map_query: Query<&Map>
 ) {
     if game_state.0 == GameState::Game {
 
@@ -126,6 +141,10 @@ fn spawn_enemy(mut commands: Commands,
             panic!("no base!");
         };
 
+        let Ok(map) = map_query.get_single() else {
+            panic!("no map!");
+        };
+
         wave_timer.timer.tick(time.delta());
 
         if wave_timer.timer.finished() || wave_timer.force_wave {
@@ -135,14 +154,17 @@ fn spawn_enemy(mut commands: Commands,
                 let x = rng.gen_range((-window.width() / 2.)..(window.width() / 2.));
                 let y = rng.gen_range((-window.height() / 2.)..(window.height() / 2.));
 
-                commands.spawn((
-                    EnemyBundle::new(x, y, base_transform.translation.truncate()),
-                    MaterialMesh2dBundle {
-                        mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
-                        material: materials.add(ColorMaterial::from(ENEMY_COLOR)),
-                        transform: Transform::from_xyz(x, y, 0.),
-                        ..default()
-                    }));
+                let spawn_cell = CellCoordinate{x: (x/CELL_SIZE) as i32, y: (y/CELL_SIZE) as i32};
+                if !map.has_wall(&spawn_cell) {
+                    commands.spawn((
+                        EnemyBundle::new(x, y, Vec2::new(x-1., y-1.)),//base_transform.translation.truncate()),
+                        MaterialMesh2dBundle {
+                            mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
+                            material: materials.add(ColorMaterial::from(ENEMY_COLOR)),
+                            transform: Transform::from_xyz(x, y, 0.),
+                            ..default()
+                        }));
+                }
             }
             wave_timer.force_wave = false;
         }

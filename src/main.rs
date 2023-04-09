@@ -10,7 +10,8 @@ use bevy::{
   mod bullet;
   mod base;
   mod season;
-  
+  mod map;
+
   #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
   enum GameState {
       #[default]
@@ -41,6 +42,7 @@ use bevy::{
       .add_plugins(DefaultPlugins
         .set(WindowPlugin {primary_window: Some(Window {
             title: String::from("Rusty Towers"),
+            resizable: false,
             ..Default::default()
         }),
         ..default()
