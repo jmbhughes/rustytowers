@@ -24,6 +24,9 @@ pub struct CellCoordinate {
     pub y: i32
 }
 
+#[derive(Component)]
+pub struct Wall;
+
 #[derive(Component, Default, Debug)]
 pub struct Map {
     width: u32,
@@ -119,22 +122,28 @@ fn build_map(
                              walls: HashMap::new(), 
                              came_from: HashMap::new()};
 
-        for cell_x in 1..5 {
+        for cell_x in 2..10 {
             for cell_y in 1..2 {
+                map.set_wall(CellCoordinate { x: cell_x, y: cell_y }, true);
+            }
+        }
+
+        for cell_x in 11..12 {
+            for cell_y in 1..10 {
                 map.set_wall(CellCoordinate { x: cell_x, y: cell_y }, true);
             }
         }
 
         for (coordinate, &has_wall) in map.walls.iter() {
             if has_wall {
-                commands.spawn(MaterialMesh2dBundle {
+                commands.spawn((MaterialMesh2dBundle {
                     mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::new(CELL_SIZE, CELL_SIZE)))).into(),
                     transform: Transform::default().with_translation(Vec3::new(coordinate.x as f32 * CELL_SIZE, 
                                                                                 coordinate.y as f32 * CELL_SIZE, 
                                                                                 0.)),
                     material: materials.add(ColorMaterial::from(Color::GOLD)),
                     ..default()
-                });
+                }, Wall));
             }
         }
 

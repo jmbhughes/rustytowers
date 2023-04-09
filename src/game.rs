@@ -17,6 +17,7 @@ use crate::bullet::BulletPlugin;
 use crate::base::{Base, BASE_RADIUS, BASE_INITIAL_HEALTH};
 use crate::season::{SeasonPlugin, SeasonBarPart};
 use crate::map::MapPlugin;
+use crate::map::{Map, Wall};
 
 #[derive(Component)]
 struct AnimateTranslation;
@@ -56,6 +57,12 @@ impl Plugin for GamePlugin {
         )
         .add_system(
             despawn_with_component::<Base>.in_schedule(OnEnter(GameState::Menu)),
+        )
+        .add_system(
+            despawn_with_component::<Map>.in_schedule(OnEnter(GameState::Menu)),
+        )
+        .add_system(
+            despawn_with_component::<Wall>.in_schedule(OnEnter(GameState::Menu)),
         )
         .add_system(
             despawn_with_component::<SeasonBarPart>.in_schedule(OnEnter(GameState::Menu)),
@@ -119,6 +126,7 @@ fn end_game(mut commands: Commands, asset_server: Res<AssetServer>, game_state: 
 }
 
 fn listen_for_restart(mut commands: Commands, 
+    mut wave_timer: ResMut<WaveTimer>,
     mut key_evr: EventReader<KeyboardInput>, 
     mut game_state: ResMut<NextState<GameState>>,
     query: Query<Entity, With<EndGameText>>) {
@@ -129,6 +137,7 @@ fn listen_for_restart(mut commands: Commands,
                     commands.entity(entity).despawn();
                 }
                 game_state.set(GameState::Menu);
+                wave_timer.timer.reset();
             }, 
         }
     }

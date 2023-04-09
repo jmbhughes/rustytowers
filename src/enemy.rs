@@ -20,7 +20,7 @@ impl Plugin for EnemyPlugin {
 pub const ENEMY_RADIUS: f32 = 5.;
 pub const ENEMY_COLOR: Color = Color::BLACK;
 pub const ENEMY_SPAWN_INTERVAL_SECONDS: u32 = 3;
-pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 25;
+pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 250;
 
 
 #[derive(Resource)]
