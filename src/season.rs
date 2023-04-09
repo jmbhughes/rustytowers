@@ -2,10 +2,10 @@ use bevy::{prelude::*,
             window::PrimaryWindow,
             sprite::MaterialMesh2dBundle,
 };
-use std::time::Duration;
+use std::{time::Duration, num};
 
 use super::GameState;
-
+use rand::Rng;
 pub struct SeasonPlugin;
 
 impl Plugin for SeasonPlugin {
@@ -15,11 +15,7 @@ impl Plugin for SeasonPlugin {
            .add_state::<Season>()
            .insert_resource(ElapsedCounter {seconds_elapsed: 0., pixels_per_second: 0.})
            .insert_resource(SeasonSchedule {
-            intervals: vec![SeasonInterval{season: Season::Build, duration: 10.}, 
-                            SeasonInterval{season: Season::Heal, duration: 5.},
-                            SeasonInterval{season: Season::Build, duration: 15.},
-                            SeasonInterval{season: Season::Heal, duration: 3.},
-                            SeasonInterval{season: Season::Build, duration: 10.}],
+            intervals: vec![SeasonInterval{season: Season::Build, duration: 10.}],
             current_season_index: 0,
             current_season_timer: Timer::new(Duration::from_secs(10. as u64), TimerMode::Once)
            });
@@ -81,6 +77,17 @@ fn initialize_season_bar(mut commands: Commands,
     mut current_season: ResMut<NextState<Season>>,
 ) {
     info!("initialize season bar");
+    season_schedule.intervals = vec![SeasonInterval{season: Season::Build, duration: 10.}];
+    
+
+    let mut rng = rand::thread_rng();
+    let num_seasons = rng.gen_range(3..6);
+    for _ in 0..num_seasons {
+        let build_length = rng.gen_range(8..16);
+        let heal_length = rng.gen_range(3..10);
+        season_schedule.intervals.push(SeasonInterval { season: Season::Build, duration: build_length as f32 });
+        season_schedule.intervals.push(SeasonInterval { season: Season::Heal, duration: heal_length as f32 });
+    }
 
     season_schedule.current_season_index = 0;
     let next_interval = season_schedule.intervals.get(season_schedule.current_season_index).unwrap();
@@ -108,7 +115,7 @@ fn initialize_season_bar(mut commands: Commands,
             custom_size: Some(Vec2::new(10., SEASON_BAR_HEIGHT)),
             ..default()
         },
-        transform: Transform::from_translation(Vec3::new(accumulated_shift+5., bar_y, 1.)),
+        transform: Transform::from_translation(Vec3::new(accumulated_shift+5., bar_y, 5.)),
         ..default()
     }, SeasonBarTimeIndicator, SeasonBarPart));
 
@@ -120,7 +127,7 @@ fn initialize_season_bar(mut commands: Commands,
                 custom_size: Some(Vec2::new(width, SEASON_BAR_HEIGHT)),
                 ..default()
             },
-            transform: Transform::from_translation(Vec3::new(accumulated_shift+width/2., bar_y, 0.)),
+            transform: Transform::from_translation(Vec3::new(accumulated_shift+width/2., bar_y, 4.)),
             ..default()
         }, SeasonBarPart));
 

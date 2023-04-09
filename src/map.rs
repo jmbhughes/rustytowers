@@ -6,6 +6,8 @@ use bevy::window::PrimaryWindow;
 use bevy::sprite::MaterialMesh2dBundle;
 use super::GameState;
 use bevy::utils::HashMap;
+use rand::Rng;
+
 
 pub const CELL_SIZE: f32 = 30.;  // probably should be an even number for the math to work
 
@@ -122,17 +124,33 @@ fn build_map(
                              walls: HashMap::new(), 
                              came_from: HashMap::new()};
 
-        for cell_x in 2..10 {
-            for cell_y in 1..2 {
-                map.set_wall(CellCoordinate { x: cell_x, y: cell_y }, true);
+        let half_width: i32 = (map.width/2) as i32;
+        let half_height: i32 = (map.height/2) as i32;
+
+        for _ in 1..100 {
+            let mut rng = rand::thread_rng();
+
+            let x = rng.gen_range(-half_width..half_width);
+            let y = rng.gen_range(-half_height..half_height);
+
+            let dx = rng.gen_range(0..4);
+            let dy = rng.gen_range(0..4);
+            
+            for cell_x in x..x+dx {
+                map.set_wall(CellCoordinate { x: cell_x, y: y}, true);
+            }
+
+            for cell_y in y..y+dy {
+                map.set_wall(CellCoordinate {x: x, y: cell_y}, true);
             }
         }
 
-        for cell_x in 11..12 {
-            for cell_y in 1..10 {
-                map.set_wall(CellCoordinate { x: cell_x, y: cell_y }, true);
+        for x in -2..2 {
+            for y in -2..2 {
+                map.set_wall(CellCoordinate { x: x, y: y }, false);
             }
         }
+
 
         for (coordinate, &has_wall) in map.walls.iter() {
             if has_wall {
@@ -140,7 +158,7 @@ fn build_map(
                     mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::new(CELL_SIZE, CELL_SIZE)))).into(),
                     transform: Transform::default().with_translation(Vec3::new(coordinate.x as f32 * CELL_SIZE, 
                                                                                 coordinate.y as f32 * CELL_SIZE, 
-                                                                                0.)),
+                                                                                2.)),
                     material: materials.add(ColorMaterial::from(Color::GOLD)),
                     ..default()
                 }, Wall));
@@ -153,10 +171,7 @@ fn build_map(
 
         // for _ in 1..1000 {
         while !frontier.is_empty() {
-            info!("map size {} {}", map.width, map.height);
-            info!("frontier size: {}", frontier.length());
             let current = frontier.dequeue();
-            info!("current {} {}", current.x, current.y);
             for next in map.get_neighbors(current) {
                 if !map.came_from.contains_key(&next) {
                     frontier.enqueue(next);
@@ -197,10 +212,8 @@ fn update_map(
             if mouse_button_input.just_pressed(MouseButton::Right) {
                 let x = _position.x - window.width() / 2.0;
                 let y = _position.y - window.height() / 2.0;
-                info!("right click at {} {}", x, y);
                 let cell_x = ((x + (CELL_SIZE / 2.0)) / CELL_SIZE).floor();
                 let cell_y = ((y + (CELL_SIZE / 2.0)) / CELL_SIZE).floor();
-                info!("right click on cell {} {}", cell_x, cell_y);
 
                 commands.spawn(MaterialMesh2dBundle {
                     mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::new(CELL_SIZE, CELL_SIZE)))).into(),
