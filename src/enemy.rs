@@ -19,8 +19,8 @@ impl Plugin for EnemyPlugin {
 
 pub const ENEMY_RADIUS: f32 = 5.;
 pub const ENEMY_COLOR: Color = Color::BLACK;
-pub const ENEMY_SPAWN_INTERVAL_SECONDS: u32 = 3;
-pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 250;
+pub const ENEMY_SPAWN_INTERVAL_SECONDS: u32 = 1;
+pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 150;
 
 
 #[derive(Resource)]
@@ -88,11 +88,8 @@ fn move_enemy(
                     step / dist * (enemy_stat.destination[1] - transform.translation.y);
 
             if dist < 3.0 {
-                // let current_cell = CellCoordinate{x: (transform.translation.x / CELL_SIZE) as i32, 
-                //                                                   y: (transform.translation.y / CELL_SIZE) as i32};
                 let current_cell = CellCoordinate{x: ((transform.translation.x  + CELL_SIZE/2.) / CELL_SIZE).floor() as i32, 
                 y: ((transform.translation.y + CELL_SIZE/2.) /CELL_SIZE).floor() as i32};
-                info!("current cell to lookup {} {}", current_cell.x, current_cell.y);
                 let next_cell = match map.came_from.get(&current_cell) {
                     Some(&x) => x,
                     None => CellCoordinate{x: 0, y: 0},  // TODO: this is a hack. fix this problem 
@@ -164,23 +161,23 @@ fn spawn_enemy(mut commands: Commands,
             for _ in 0..ENEMY_SPAWN_PER_INTERVAL {
                 let x = rng.gen_range((-window.width() / 2.)..(window.width() / 2.));
                 let y = rng.gen_range((-window.height() / 2.)..(window.height() / 2.));
-
-                let spawn_cell = CellCoordinate{x: ((x + CELL_SIZE/2.) / CELL_SIZE).floor() as i32, 
-                                                                y: ((y + CELL_SIZE/2.) /CELL_SIZE).floor() as i32};
-                                                                
-                // let spawn_cell = CellCoordinate{x: (x /CELL_SIZE) as i32, 
-                //                                                 y: (y /CELL_SIZE) as i32};
-                if map.came_from.contains_key(&spawn_cell) && !map.has_wall(&spawn_cell) {
-                    let destination = map.came_from.get(&spawn_cell).unwrap();
-                    commands.spawn((
-                        EnemyBundle::new(x, y, Vec2::new(destination.x as f32 * CELL_SIZE,
-                                                                     destination.y as f32 * CELL_SIZE)),//base_transform.translation.truncate()),
-                        MaterialMesh2dBundle {
-                            mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
-                            material: materials.add(ColorMaterial::from(ENEMY_COLOR)),
-                            transform: Transform::from_xyz(x, y, 0.),
-                            ..default()
-                        }));
+                let dist = Vec2::new(x, y).distance(Vec2::new(0., 0.));
+                if dist > 300. {
+                    let spawn_cell = CellCoordinate{x: ((x + CELL_SIZE/2.) / CELL_SIZE).floor() as i32, 
+                                                                    y: ((y + CELL_SIZE/2.) /CELL_SIZE).floor() as i32};
+                                                                    
+                    if map.came_from.contains_key(&spawn_cell) && !map.has_wall(&spawn_cell) {
+                        let destination = map.came_from.get(&spawn_cell).unwrap();
+                        commands.spawn((
+                            EnemyBundle::new(x, y, Vec2::new(destination.x as f32 * CELL_SIZE,
+                                                                        destination.y as f32 * CELL_SIZE)),//base_transform.translation.truncate()),
+                            MaterialMesh2dBundle {
+                                mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
+                                material: materials.add(ColorMaterial::from(ENEMY_COLOR)),
+                                transform: Transform::from_xyz(x, y, 1.),
+                                ..default()
+                            }));
+                    }
                 }
             }
             wave_timer.force_wave = false;
