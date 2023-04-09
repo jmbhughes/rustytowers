@@ -11,7 +11,7 @@ use bevy::{
 
 use super::GameState;
 
-use crate::{tower::{TowerBundle, TowerStats, TOWER_RADIUS, TOWER_COLOR, TowerPlugin}, base::BASE_COLOR, game, despawn_with_component, bullet::Bullet, enemy::EnemyStats};
+use crate::{tower::{TowerBundle, TowerStats, TOWER_RADIUS, TOWER_COLOR, TowerPlugin}, base::BASE_COLOR, game, despawn_with_component, bullet::Bullet, enemy::EnemyStats, season::SeasonSchedule};
 use crate::enemy::{EnemyPlugin, WaveTimer, ENEMY_SPAWN_INTERVAL_SECONDS};
 use crate::bullet::BulletPlugin;
 use crate::base::{Base, BASE_RADIUS, BASE_INITIAL_HEALTH};
@@ -100,7 +100,11 @@ fn startup(mut commands: Commands,
 }
 
 
-fn end_game(mut commands: Commands, asset_server: Res<AssetServer>, game_state: Res<State<GameState>>) {
+fn end_game(mut commands: Commands, 
+    asset_server: Res<AssetServer>, 
+    game_state: Res<State<GameState>>,
+    base_query: Query<&Base> )
+    {
     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
     let text_style = TextStyle {
         font: font.clone(),
@@ -109,10 +113,12 @@ fn end_game(mut commands: Commands, asset_server: Res<AssetServer>, game_state: 
     };
     let text_alignment = TextAlignment::Center;
 
+    let base_health = base_query.get_single().unwrap().health as i32;
+
     let text = match game_state.0 {
-        GameState::GameWon => "You win! Good job!\nPress any key to return to the menu.",
-        GameState::GameLost => "Game Over! You lost.\nPress any key to return to the menu.",
-        _ => "unreachable"
+        GameState::GameWon => format!("You win! Score: {}\nPress any key to return to the menu.", base_health),
+        GameState::GameLost => "Game Over! You lost.\nPress any key to return to the menu.".to_string(),
+        _ => "unreachable".to_string()
     };
 
     commands.spawn((
@@ -130,7 +136,8 @@ fn listen_for_restart(mut commands: Commands,
     mut wave_timer: ResMut<WaveTimer>,
     mut key_evr: EventReader<KeyboardInput>, 
     mut game_state: ResMut<NextState<GameState>>,
-    query: Query<Entity, With<EndGameText>>) {
+    query: Query<Entity, With<EndGameText>>, 
+    mut season_schedule: ResMut<SeasonSchedule>) {
     for ev in key_evr.iter() {
         match ev.state {
             _ => {

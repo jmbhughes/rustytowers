@@ -58,13 +58,13 @@ impl TowerBundle {
                 y: y,
                 level: 1,
                 range: 128.0,
-                damage: 50.,
+                damage: 100.,
                 upgrade_price: 10,
                 speed: 500.0,
                 health: TOWER_INITIAL_HEALTH
             },
             state: TowerState {
-                timer: Timer::from_seconds(0.15, TimerMode::Repeating),
+                timer: Timer::from_seconds(0.05, TimerMode::Repeating),
             },
             ..Default::default()
         }
@@ -132,8 +132,6 @@ fn place_tower(
                 return;
         };
 
-        info!("screen size {} {}", window.width(), window.height());
-
         if let Some(_position) = window.cursor_position() {
             if mouse_button_input.just_pressed(MouseButton::Left) {
                 let x = _position.x - window.width() / 2.0;
@@ -144,7 +142,6 @@ fn place_tower(
                     let distance = euclidean_distance(x, y, tower_transform.translation.x, tower_transform.translation.y);
                     let damage = fall_off_damage_curve(distance, 100., 10., 4.);
                     if tower_stat.health >= damage {
-                        info!("{} results in {} to {}", damage, tower_stat.health, tower_stat.health - damage);
                         tower_stat.health -= damage;
                     } else {
                         info!("tower despawned");
@@ -156,7 +153,6 @@ fn place_tower(
                     let distance = euclidean_distance(x, y, enemy_transform.translation.x, enemy_transform.translation.y);
                     let damage = fall_off_damage_curve(distance, 200., 10., 4.);
                     if enemy_stat.health >= damage {
-                        info!("enemy {} results in {} to {}", damage, enemy_stat.health, enemy_stat.health - damage);
                         enemy_stat.health -= damage;
                     } else {
                         info!("enemy despawned");
@@ -168,7 +164,6 @@ fn place_tower(
                     let distance = euclidean_distance(x, y, base_transform.translation.x, base_transform.translation.y);
                     let damage = fall_off_damage_curve(distance, 100., 10., 4.);
                     if base.health >= damage {
-                        info!("base {} results in {} to {}", damage, base.health, base.health - damage);
                         base.health -= damage;
                     } else {
                         info!("base destroyed");
