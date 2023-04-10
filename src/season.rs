@@ -35,8 +35,8 @@ pub enum Season {
 
 fn season_color(season: Season) -> Color {
     match season {
-        Season::Build => Color::GREEN,
-        Season::Heal => Color::RED,
+        Season::Build => Color::rgb_u8(71, 117, 7),
+        Season::Heal => Color::rgb_u8(140, 49, 70),
         Season::Upgrade => Color::GOLD,
         Season::Neutralize => Color::VIOLET
     }
@@ -111,7 +111,7 @@ fn initialize_season_bar(mut commands: Commands,
 
     commands.spawn((SpriteBundle {
         sprite: Sprite {
-            color: Color::BLACK,
+            color: Color::WHITE,
             custom_size: Some(Vec2::new(10., SEASON_BAR_HEIGHT)),
             ..default()
         },

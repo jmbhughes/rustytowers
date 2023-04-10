@@ -124,6 +124,7 @@ fn place_tower(
     mut other_towers_query: Query<(Entity, &mut TowerStats, &Transform)>,
     mut enemies_query: Query<(Entity, &mut EnemyStats, &Transform)>,
     mut base_query: Query<(&mut Base, &Transform)>,
+    asset_server: Res<AssetServer>
 ) {
 
     if game_state.0 == GameState::Game && current_season.0 == Season::Build {
@@ -171,14 +172,21 @@ fn place_tower(
                     }
                 }
 
-                commands.spawn((
-                    TowerBundle::new(x, y),
-                    MaterialMesh2dBundle {
-                        mesh: meshes.add(shape::Circle::new(TOWER_RADIUS).into()).into(),
-                        material: materials.add(ColorMaterial::from(TOWER_COLOR)),
-                        transform: Transform::from_xyz(x, y, 3.),
+                // commands.spawn((
+                //     TowerBundle::new(x, y),
+                //     MaterialMesh2dBundle {
+                //         mesh: meshes.add(shape::Circle::new(TOWER_RADIUS).into()).into(),
+                //         material: materials.add(ColorMaterial::from(TOWER_COLOR)),
+                //         transform: Transform::from_xyz(x, y, 3.),
+                //         ..default()
+                // }));
+
+                commands.spawn((TowerBundle::new(x, y), 
+                    SpriteBundle {
+                        texture:  asset_server.load("turret.png"),
+                        transform: Transform::from_xyz(x, y, 3.).with_scale(Vec3::splat(0.06)),
                         ..default()
-                }));
+                    }));
 
                 
             }   
@@ -211,7 +219,7 @@ fn heal_tower_and_base(
                                 
                 for (mut tower_stat, tower_transform) in towers_query.iter_mut() {
                     let distance = euclidean_distance(x, y, tower_transform.translation.x, tower_transform.translation.y);
-                    if distance < TOWER_RADIUS * tower_transform.scale.x{
+                    if distance < TOWER_RADIUS * tower_transform.scale.x / 0.06{
                         tower_stat.health += HEAL_AMOUNT;
                         wave_timer.force_wave = true;
                     }
@@ -219,7 +227,7 @@ fn heal_tower_and_base(
 
                 for (mut base, base_transform) in base_query.iter_mut() {
                     let distance = euclidean_distance(x, y, base_transform.translation.x, base_transform.translation.y);
-                    if distance < BASE_RADIUS * base_transform.scale.x {
+                    if distance < BASE_RADIUS * base_transform.scale.x / 0.06 {
                         base.health += HEAL_AMOUNT;
                         wave_timer.force_wave = true;
                     }
@@ -233,7 +241,7 @@ fn heal_tower_and_base(
 
 
 fn compute_scale(health: f32) -> f32 {
-    (health / TOWER_INITIAL_HEALTH).max(0.25)
+    (health / TOWER_INITIAL_HEALTH).max(0.25) * 0.06
 }
 
 fn sync_size(mut tower_query: Query<(&TowerStats, &mut Transform)>) {

@@ -76,7 +76,7 @@ impl Plugin for GamePlugin {
 }
 
 fn compute_scale(health: f32) -> f32 {
-    (health / BASE_INITIAL_HEALTH).max(0.25)
+    (health / BASE_INITIAL_HEALTH).max(0.25) * 0.06
 }
 
 fn sync_base_size(mut base_query: Query<(&Base, &mut Transform)>) {
@@ -87,16 +87,22 @@ fn sync_base_size(mut base_query: Query<(&Base, &mut Transform)>) {
 
 fn startup(mut commands: Commands,    
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>) {
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>) {
 
     commands.spawn((Base {health: BASE_INITIAL_HEALTH}, 
-    MaterialMesh2dBundle {
-        mesh: meshes.add(shape::Circle::new(BASE_RADIUS).into()).into(),
-        material: materials.add(ColorMaterial::from(BASE_COLOR)),
+    SpriteBundle {
+        texture:  asset_server.load("base.png"),
         transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
         ..default()
-    }
-    ));
+    }));
+    // MaterialMesh2dBundle {
+    //     mesh: meshes.add(shape::Circle::new(BASE_RADIUS).into()).into(),
+    //     material: materials.add(ColorMaterial::from(BASE_COLOR)),
+    //     transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+    //     ..default()
+    // }
+    // ));
 }
 
 
@@ -121,15 +127,53 @@ fn end_game(mut commands: Commands,
         _ => "unreachable".to_string()
     };
 
-    commands.spawn((
-        Text2dBundle {
-            text: Text::from_section(text, text_style.clone())
-                .with_alignment(text_alignment),
-            transform: Transform::from_translation(Vec3::new(0., 0., 6.)),
+    let box_color = match game_state.0 {
+        GameState::GameWon => Color::rgb_u8(2, 97, 27),
+        GameState::GameLost => Color::rgb_u8(61, 7, 7),
+        _ => Color::BLACK
+    };
+
+    let box_size = Vec2::new(600.0, 600.0);
+    let box_position = Vec2::new(0.0, 0.0);
+    commands
+        .spawn((SpriteBundle {
+            sprite: Sprite {
+                color: box_color,
+                custom_size: Some(Vec2::new(box_size.x, box_size.y)),
+                ..default()
+            },
+            transform: Transform::from_translation(box_position.extend(6.0)),
             ..default()
-        },
-        EndGameText
-    ));
+        }, EndGameText))
+        .with_children(|builder| {
+            builder.spawn((Text2dBundle {
+                text: Text {
+                    sections: vec![TextSection::new(
+                        text,
+                        text_style.clone(),
+                    )],
+                    alignment: TextAlignment::Center,
+                    linebreak_behaviour: BreakLineOn::WordBoundary,
+                },
+                text_2d_bounds: Text2dBounds {
+                    // Wrap text in the rectangle
+                    size: box_size,
+                },
+                // ensure the text is drawn on top of the box
+                transform: Transform::from_translation(Vec3::Z*7.),
+                ..default()
+            }, EndGameText));
+        });
+
+    // commands.spawn((
+    //     Text2dBundle {
+    //         text: Text::from_section(text, text_style.clone())
+    //             .with_alignment(text_alignment),
+    //         transform: Transform::from_translation(Vec3::new(0., 0., 6.)),
+    //         ..default()
+    //     },
+    //     EndGameText
+    // ));
 }
 
 fn listen_for_restart(mut commands: Commands, 

@@ -15,8 +15,7 @@ pub struct MapPlugin;
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(build_map.in_schedule(OnEnter(GameState::Game)))
-        .add_system(update_map);
+        app.add_system(build_map.in_schedule(OnEnter(GameState::Game)));
     }
 }
 
@@ -114,6 +113,8 @@ fn build_map(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>) {
 
+    let wall_color: Color =  Color::rgb_u8(90, 90, 90);
+
     if game_state.0 == GameState::Game {
         let Ok(window) = primary_window_query.get_single() else {
             return;
@@ -159,7 +160,7 @@ fn build_map(
                     transform: Transform::default().with_translation(Vec3::new(coordinate.x as f32 * CELL_SIZE, 
                                                                                 coordinate.y as f32 * CELL_SIZE, 
                                                                                 2.)),
-                    material: materials.add(ColorMaterial::from(Color::GOLD)),
+                    material: materials.add(ColorMaterial::from(wall_color)),
                     ..default()
                 }, Wall));
             }
@@ -194,37 +195,37 @@ fn build_map(
     }
 }
 
-fn update_map(
-    mut commands: Commands,
-    primary_window_query: Query<&Window, With<PrimaryWindow>>, 
-    mouse_button_input: Res<Input<MouseButton>>, 
-    game_state: Res<State<GameState>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>) {
+// fn update_map(
+//     mut commands: Commands,
+//     primary_window_query: Query<&Window, With<PrimaryWindow>>, 
+//     mouse_button_input: Res<Input<MouseButton>>, 
+//     game_state: Res<State<GameState>>,
+//     mut meshes: ResMut<Assets<Mesh>>,
+//     mut materials: ResMut<Assets<ColorMaterial>>) {
 
-    if game_state.0 == GameState::Game {
+//     if game_state.0 == GameState::Game {
 
-        let Ok(window) = primary_window_query.get_single() else {
-                return;
-        };
+//         let Ok(window) = primary_window_query.get_single() else {
+//                 return;
+//         };
 
-        if let Some(_position) = window.cursor_position() {
-            if mouse_button_input.just_pressed(MouseButton::Right) {
-                let x = _position.x - window.width() / 2.0;
-                let y = _position.y - window.height() / 2.0;
-                let cell_x = ((x + (CELL_SIZE / 2.0)) / CELL_SIZE).floor();
-                let cell_y = ((y + (CELL_SIZE / 2.0)) / CELL_SIZE).floor();
+//         if let Some(_position) = window.cursor_position() {
+//             if mouse_button_input.just_pressed(MouseButton::Right) {
+//                 let x = _position.x - window.width() / 2.0;
+//                 let y = _position.y - window.height() / 2.0;
+//                 let cell_x = ((x + (CELL_SIZE / 2.0)) / CELL_SIZE).floor();
+//                 let cell_y = ((y + (CELL_SIZE / 2.0)) / CELL_SIZE).floor();
 
-                commands.spawn(MaterialMesh2dBundle {
-                    mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::new(CELL_SIZE, CELL_SIZE)))).into(),
-                    transform: Transform::default().with_translation(Vec3::new(cell_x*CELL_SIZE, cell_y*CELL_SIZE, 0.)),
-                    material: materials.add(ColorMaterial::from(Color::GOLD)),
-                    ..default()
-                });
-        }
-    }
-    }
-}
+//                 commands.spawn(MaterialMesh2dBundle {
+//                     mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::new(CELL_SIZE, CELL_SIZE)))).into(),
+//                     transform: Transform::default().with_translation(Vec3::new(cell_x*CELL_SIZE, cell_y*CELL_SIZE, 0.)),
+//                     material: materials.add(ColorMaterial::from(wall_color)),
+//                     ..default()
+//                 });
+//         }
+//     }
+//     }
+// }
 
 #[cfg(test)]
 mod tests {

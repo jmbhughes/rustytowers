@@ -21,7 +21,7 @@ pub struct Bullet {
 }
 
 pub const BULLET_RADIUS: f32 = 3.;
-pub const BULLET_COLOR: Color = Color::RED;
+pub const BULLET_COLOR: Color = Color::WHITE;
 
 
 pub fn move_bullets(

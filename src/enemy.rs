@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::{
     prelude::*,
     sprite::MaterialMesh2dBundle,
@@ -18,7 +20,7 @@ impl Plugin for EnemyPlugin {
 
 
 pub const ENEMY_RADIUS: f32 = 5.;
-pub const ENEMY_COLOR: Color = Color::BLACK;
+pub const ENEMY_COLOR: Color = Color::YELLOW;
 pub const ENEMY_SPAWN_INTERVAL_SECONDS: u32 = 1;
 pub const ENEMY_SPAWN_PER_INTERVAL: u32 = 150;
 
@@ -82,10 +84,13 @@ fn move_enemy(
 
             let delta = time.delta_seconds();
             let step = enemy_stat.speed * delta;
+            transform.rotation = Quat::from_rotation_z((transform.translation.y - enemy_stat.destination.y).atan2(transform.translation.x - enemy_stat.destination.x) + PI/2.);
+
             transform.translation.x +=
                     step / dist * (enemy_stat.destination[0] - transform.translation.x);
             transform.translation.y +=
                     step / dist * (enemy_stat.destination[1] - transform.translation.y);
+            
 
             if dist < 3.0 {
                 let current_cell = CellCoordinate{x: ((transform.translation.x  + CELL_SIZE/2.) / CELL_SIZE).floor() as i32, 
@@ -137,7 +142,8 @@ fn spawn_enemy(mut commands: Commands,
     base_query: Query<(&Base, &Transform)>,
     time: Res<Time>,
     mut wave_timer: ResMut<WaveTimer>,
-    map_query: Query<&Map>
+    map_query: Query<&Map>, 
+    asset_server: Res<AssetServer>
 ) {
     if game_state.0 == GameState::Game {
 
@@ -171,12 +177,13 @@ fn spawn_enemy(mut commands: Commands,
                         commands.spawn((
                             EnemyBundle::new(x, y, Vec2::new(destination.x as f32 * CELL_SIZE,
                                                                         destination.y as f32 * CELL_SIZE)),//base_transform.translation.truncate()),
-                            MaterialMesh2dBundle {
-                                mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
-                                material: materials.add(ColorMaterial::from(ENEMY_COLOR)),
-                                transform: Transform::from_xyz(x, y, 1.),
+                            
+                            SpriteBundle {
+                                texture:  asset_server.load("creepulant.png"),
+                                transform: Transform::from_xyz(x, y, 1.).with_scale(Vec3::splat(0.075)),
                                 ..default()
-                            }));
+                            }, 
+                            ));
                     }
                 }
             }

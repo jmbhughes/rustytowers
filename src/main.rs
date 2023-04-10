@@ -39,6 +39,7 @@ use bevy::{
   
   fn main() {
     App::new()
+      .insert_resource(ClearColor(Color::rgb(0.15, 0.14, 0.14)))
       .add_plugins(DefaultPlugins
         .set(WindowPlugin {primary_window: Some(Window {
             title: String::from("Rusty Towers"),
